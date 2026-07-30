@@ -1,0 +1,197 @@
+{
+  "$comment": "THE source of truth for this repo's harness. Policy lives here once; enabled AI adapters are generated projections, never requirements. Change policy or adapter selection here, then run `npm run harness:sync`. Hook scripts stay executable engine code.",
+  "version": 1,
+  "framework": "cypress",
+  "adapters": {
+    "claude": { "enabled": true },
+    "copilot": { "enabled": true }
+  },
+
+  "project": {
+    "name": "cypress-automation-boilerplate",
+    "architecture": "Config → Commands → Tests",
+    "testRoot": "cypress",
+    "configRoot": "cypress/configs",
+    "commandRoot": "cypress/support/commands",
+    "specGlob": "cypress/tests/**/*.cy.js"
+  },
+
+  "context": {
+    "effortLevel": "high",
+    "alwaysThinkingEnabled": true,
+    "autoMemoryEnabled": true
+  },
+
+  "loops": {
+    "gateRepairLimit": 3
+  },
+
+  "qaFoundations": "harness/qa-automation-foundations.md",
+
+  "rules": [
+    {
+      "id": "no-hard-wait",
+      "severity": "block",
+      "enforcement": "Hook + CI",
+      "never": "cy.wait(<number>)",
+      "instead": "cy.apiWait('@alias') or a state-based assertion",
+      "why": "A fixed wait masks the real timing bug and fails on slower CI machines.",
+      "message": "Hard wait detected. Replace with cy.apiWait(...) or a deterministic state-based wait."
+    },
+    {
+      "id": "no-hardcoded-selector",
+      "severity": "block",
+      "enforcement": "Hook + CI",
+      "never": "a selector literal in a spec or command",
+      "instead": "constants from cypress/configs/ui/**",
+      "why": "One app change should mean one config edit, not a hunt through 50 specs.",
+      "message": "Hardcoded selector. Use config constants from cypress/configs/ui/**."
+    },
+    {
+      "id": "no-hardcoded-route",
+      "severity": "block",
+      "enforcement": "Hook + CI",
+      "never": "a URL literal in cy.visit()",
+      "instead": "constants from cypress/configs/app/routes.js",
+      "why": "Routes change; a central registry keeps every caller correct.",
+      "message": "Hardcoded route. Use route constants from cypress/configs/app/routes.js."
+    },
+    {
+      "id": "no-page-object",
+      "severity": "block",
+      "enforcement": "Hook + CI",
+      "never": "*.actions.js files or page-object wrappers",
+      "instead": "custom cy.* commands — command-first only",
+      "why": "Commands are the page methods; a second abstraction layer duplicates ownership.",
+      "message": "Action class or page-object import. Command-first architecture forbids these dependencies."
+    },
+    {
+      "id": "require-auth-command",
+      "severity": "block",
+      "enforcement": "Hook + CI",
+      "never": "an auth-required spec without an auth call",
+      "instead": "cy.ensureAuthenticated() in beforeEach(), or the module's own auth command plus the // @no-ensureAuthenticated pragma",
+      "why": "Session setup belongs in one place, not repeated per test.",
+      "message": "Missing cy.ensureAuthenticated() in auth-required test file."
+    },
+    {
+      "id": "no-credential-literal",
+      "severity": "block",
+      "enforcement": "Hook + CI",
+      "never": "a password, secret, API key or token assigned a literal string",
+      "instead": "cy.env([...]) reading cypress.env.json (gitignored) or a CI secret",
+      "why": "Trust boundary. A committed credential is a breach, not a style issue.",
+      "message": "Hardcoded credential. Read it with cy.env([...]) instead."
+    },
+    {
+      "id": "smoke-read-only",
+      "severity": "block",
+      "enforcement": "Hook + CI",
+      "never": "POST/PUT/PATCH/DELETE in a smoke spec",
+      "instead": "read-only assertions; put mutations in the e2e tier",
+      "why": "Smoke runs against shared and production-like environments.",
+      "message": "Write request in smoke suite. Smoke tests must remain read-only."
+    },
+    {
+      "id": "search-before-create",
+      "severity": "review",
+      "enforcement": "QA gate",
+      "never": "a new config, command or spec without searching first",
+      "instead": "grep the literal selector/endpoint/route across configs and commands — search by value, not filename",
+      "why": "A filename check that finds nothing is not a value check that finds nothing. Duplicate owners are the most common review failure.",
+      "message": "Search cypress/configs/** and cypress/support/commands/** by value before creating a new one."
+    },
+    {
+      "id": "one-requirement-tag",
+      "severity": "review",
+      "enforcement": "QA gate",
+      "never": "a spec with no requirement tag, or more than one",
+      "instead": "exactly one known requirement id in the title and as a tag, plus Type, Priority, and tier tags",
+      "why": "The title survives every reporter and the tag supports filtering; together they make coverage computable.",
+      "message": "Spec must carry exactly one known requirement id in its title and tags."
+    }
+  ],
+
+  "agents": [
+    {
+      "name": "project-bootstrapper",
+      "role": "GATHER",
+      "description": "Derive an approved project and application contract from verified sources before any test generation.",
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "Bash"],
+      "when": "Start a new project or module from no existing automation context"
+    },
+    {
+      "name": "cypress-discovery",
+      "role": "DISCOVER",
+      "description": "Capture verified selectors, routes, and flow steps from the running application into config constants.",
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "Bash"],
+      "when": "Observe an unknown module and turn what you see into config constants"
+    },
+    {
+      "name": "cypress-generator",
+      "role": "BUILD",
+      "description": "Turns a requirement into a merge-ready Cypress module — UI config, routes, API config, commands, registration, and the spec.",
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "Bash"],
+      "when": "Build a module from a requirement id — config → commands → spec"
+    },
+    {
+      "name": "cypress-bug-hunter",
+      "role": "DIAGNOSE",
+      "description": "Debug a failing smoke test, trace root cause, and propose an exact compliant fix.",
+      "model": "opus",
+      "tools": ["Read", "Grep", "Glob", "Bash", "Edit"],
+      "when": "Debugging a failing test locally"
+    },
+    {
+      "name": "pre-merge-qa-gate",
+      "role": "EVALUATE",
+      "description": "Evaluate supplied change and command evidence through the 6-phase QA gate and return PASS, PASS_WITH_ACTIONS, or BLOCK.",
+      "model": "opus",
+      "permissionMode": "plan",
+      "tools": ["Read", "Grep", "Glob"],
+      "when": "Evaluate supplied diff and verification evidence — PASS / PASS_WITH_ACTIONS / BLOCK",
+      "readOnlyRationale": "Read/search only by design: the gate cannot edit files or execute shell commands, so the builder never grades its own output."
+    },
+    {
+      "name": "pr-creator",
+      "role": "SHIP",
+      "description": "Create a pull request with the repository's standard generated description.",
+      "model": "sonnet",
+      "tools": ["Read", "Grep", "Glob", "Bash"],
+      "when": "Opening a pull request with a generated description"
+    },
+    {
+      "name": "workflow-maintainer",
+      "role": "MAINTAIN",
+      "description": "Simplify repository workflow scripts, agents, and docs without duplicating ownership.",
+      "model": "sonnet",
+      "tools": ["Read", "Grep", "Glob", "Bash", "Edit"],
+      "when": "Simplify workflow scripts, agents, or docs"
+    }
+  ],
+
+  "hooks": {
+    "prompt": ["prompt-duplication-guard.mjs"],
+    "preWrite": ["pre-validate-cypress-rules.mjs"],
+    "postWrite": ["validate-cypress-rules.mjs"],
+    "stop": ["session-end-reminder.mjs"]
+  },
+
+  "permissions": {
+    "defaultMode": "plan",
+    "allow": [
+      "Bash(npm run cy:open*)",
+      "Bash(npm run cy:run*)",
+      "Bash(npm run lint*)",
+      "Bash(npm run format*)",
+      "Bash(npm run harness:*)",
+      "Bash(npx cypress*)",
+      "Bash(grep -r* cypress/*)",
+      "Bash(find cypress/*)"
+    ],
+    "deny": ["WebSearch"]
+  }
+}

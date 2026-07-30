@@ -1,7 +1,15 @@
 ---
 name: pr-creator
-description: "Use when creating pull requests. Analyzes branch changes, generates PR description from the repo template, and creates the PR on GitHub via gh CLI."
+description: "Create a pull request with the repository's standard generated description."
+model: sonnet
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
 ---
+
+<!-- GENERATED FROM harness.config.json and harness/agents/. DO NOT EDIT. -->
 
 # PR Creator Agent
 

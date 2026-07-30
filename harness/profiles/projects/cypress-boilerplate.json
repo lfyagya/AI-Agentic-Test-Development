@@ -1,0 +1,10 @@
+{
+  "$comment": "Profile for the Cypress boilerplate itself — the reference instantiation of the cypress adapter. Every field below is a project fact; all policy comes from adapters/cypress.json.",
+  "key": "cypress-boilerplate",
+  "displayName": "Cypress Automation Boilerplate",
+  "owner": "<accountable QA owner>",
+  "adapter": "cypress",
+  "language": "javascript",
+  "projectName": "cypress-automation-boilerplate",
+  "repo": "cypress-automation-boilerplate"
+}

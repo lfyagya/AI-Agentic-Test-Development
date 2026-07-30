@@ -1,47 +1,11 @@
-/**
- * @fileoverview UI utility commands.
- *
- * cy.step(message)            — label a logical test step in the Cypress UI timeline.
- * cy.getByTestId(id)          — query [data-cy="id"]   — for apps using data-cy attributes.
- * cy.getByDataTest(id)        — query [data-test="id"] — for apps using data-test attributes (e.g. Saucedemo).
- * cy.ensureVisible(selector)  — assert visible before interaction.
- * cy.assertToast(message)     — assert toast/snackbar notification text.
- * cy.assertLoadingComplete()  — wait for loading spinners to disappear.
- * cy.closeModal()             — close an open modal dialog.
- */
-
-// Labels a logical step in the Cypress command log — useful for readability in long tests.
 Cypress.Commands.add("step", (message) => {
-  cy.log(`**STEP** ${message}`);
+  cy.log(`**${message}**`);
 });
 
-// For apps using [data-cy="..."] attributes (e.g. internal apps)
-Cypress.Commands.add("getByTestId", (id, options = {}) => {
-  return cy.get(`[data-cy="${id}"]`, options);
+Cypress.Commands.add("getByTestId", (testId, ...args) => {
+  return cy.get(`[data-cy="${testId}"]`, ...args);
 });
 
-// For apps using [data-test="..."] attributes (e.g. Saucedemo)
-Cypress.Commands.add("getByDataTest", (id, options = {}) => {
-  return cy.get(`[data-test="${id}"]`, options);
-});
-
-Cypress.Commands.add("ensureVisible", (selector, options = {}) => {
-  return cy.get(selector, options).should("be.visible");
-});
-
-Cypress.Commands.add("assertToast", (message) => {
-  cy.get('[data-cy="toast"], [data-cy="snackbar"], [role="alert"]')
-    .should("be.visible")
-    .and("contain.text", message);
-});
-
-Cypress.Commands.add("assertLoadingComplete", () => {
-  cy.get('[data-cy*="loading"], [data-cy*="spinner"]', {
-    timeout: 10000,
-  }).should("not.exist");
-});
-
-Cypress.Commands.add("closeModal", () => {
-  cy.get('[data-cy="modal-close"], [data-cy="dialog-close"]').click();
-  cy.get('[data-cy="modal"], [data-cy="dialog"]').should("not.exist");
+Cypress.Commands.add("ensureVisible", { prevSubject: true }, (subject) => {
+  return cy.wrap(subject).should("be.visible");
 });

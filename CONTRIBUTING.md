@@ -27,7 +27,7 @@ flowchart TD
     B --> C{"Something\nalready exists?"}
     C -- Yes --> D["Reuse or extend\nthe existing file"]
     C -- No --> E["Follow the 6-step\nmodule checklist"]
-    D --> F["Write or update\nyour test (cypress-author skill)"]
+    D --> F["Write or update\nyour test (cypress-generator agent)"]
     E --> F
     F --> G["npm run cy:run:smoke\nVerify locally"]
     G --> H{Pass?}
@@ -106,8 +106,7 @@ See [docs/guides/ci-cd-guide.md](docs/guides/ci-cd-guide.md) for full pipeline s
 
 | What you need | Where |
 | ------------- | ----- |
-| First time setup | [docs/onboarding/getting-started.md](docs/onboarding/getting-started.md) |
-| Joining an existing project | [docs/onboarding/joining-an-existing-project.md](docs/onboarding/joining-an-existing-project.md) |
+| First time setup, and the whole lifecycle | [docs/START-HERE.md](docs/START-HERE.md) |
 | Architecture rules and why | [docs/reference/framework-standards.md](docs/reference/framework-standards.md) |
 | Why configs/tests/commands are split | [docs/reference/test-organization.md](docs/reference/test-organization.md) |
 | Adding or updating modules | [docs/guides/framework-maintenance-guide.md](docs/guides/framework-maintenance-guide.md) |

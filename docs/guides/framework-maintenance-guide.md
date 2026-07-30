@@ -183,12 +183,12 @@ grep -rn "<the-data-cy-value-or-endpoint-you-need>" cypress/support/commands/ cy
 
 If nothing matches either search, create or extend the appropriate file:
 
-| What it does | File |
-| ------------ | ---- |
-| Auth, login, logout, session | `auth.commands.js` |
-| Navigation, routing | `navigation.commands.js` |
-| Tables, pagination, sorting | `table.commands.js` |
-| Generic UI interactions | `ui.commands.js` |
+| What it does                 | File                     |
+| ---------------------------- | ------------------------ |
+| Auth, login, logout, session | `auth.commands.js`       |
+| Navigation, routing          | `navigation.commands.js` |
+| Tables, pagination, sorting  | `table.commands.js`      |
+| Generic UI interactions      | `ui.commands.js`         |
 
 Register any new common command file in `cypress/support/commands.js` if it is a new file.
 
@@ -231,7 +231,7 @@ npx cypress run --spec "cypress/tests/payments/smoke/payments-smoke.cy.js"
 1. Isolate one failing test by name:
 
 ```bash
-npx cypress run --env grepTags=@smoke,grep="loads the payments list"
+npx cypress run --expose grepTags=@smoke,grep="loads the payments list"
 ```
 
 1. Use the `cypress-bug-hunter` agent for a guided root-cause trace.

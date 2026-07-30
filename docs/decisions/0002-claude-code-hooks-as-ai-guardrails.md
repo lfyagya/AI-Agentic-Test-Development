@@ -47,7 +47,21 @@ Legitimate exceptions (e.g. `cy.get('body')` for framework-level checks) are dec
 - Hooks only fire during Claude Code sessions. Human-authored code bypasses the pre-write hook entirely — CI is the only gate for those changes.
 - The hook system requires Node.js to be available in the environment where Claude Code runs.
 - Allowlist exceptions require discipline: every entry must be documented in the governance file or it will be removed at the next review.
-- Hooks are a Claude Code concept — they do not apply to GitHub Copilot sessions. Copilot enforcement relies on instruction files in `.github/instructions/`. Both enforce the same rules via different mechanisms; see [docs/reference/two-views.md](../reference/two-views.md).
+- Hooks are a Claude Code concept — they do not apply to GitHub Copilot sessions. Copilot enforcement is advisory, through generated instructions. Both read the same rules from one source; only the enforcement strength differs.
+
+## Update — 31 July 2026
+
+This decision stands, but the mechanism moved. Rules are now declared once in `harness.config.json`
+and *generated* into every adapter by `npm run harness:sync`. Consequently:
+
+- `.github/instructions/*.instructions.md` and `.github/FRAMEWORK_RULES.md` were retired. They were
+  hand-maintained restatements of the same rules and drifted from the config.
+- Copilot enforcement is now `.github/copilot-instructions.md`, a generated projection.
+- `docs/reference/two-views.md` was retired; the human-vs-agent split it described is covered by
+  [`docs/START-HERE.md`](../START-HERE.md) and the harness guide.
+- `npm run harness:check` fails the build if any projection drifts from the config.
+
+The original trade-off is unchanged: hooks are deterministic, instructions are advisory.
 
 ## What This Is Not
 

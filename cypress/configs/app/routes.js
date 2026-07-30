@@ -1,35 +1,12 @@
 /**
- * @fileoverview Application route registry.
- * All navigable URL paths are defined here. Commands import from this file — never hardcode URLs.
- *
- * Pattern:
- *   const MODULE = { ROOT: '/path', DETAIL: (id) => `/path/${id}` };
- *   export const ROUTES = Object.freeze({ MODULE });
+ * Project routes are added here after application discovery.
  */
+export const ROUTES = Object.freeze({});
 
-const DASHBOARD = Object.freeze({
-  ROOT: "/dashboard",
-});
-
-// ─── Saucedemo (https://www.saucedemo.com) ───────────────────────────────────
-const SAUCEDEMO = Object.freeze({
-  LOGIN: "/",
-  INVENTORY: "/inventory.html",
-  CART: "/cart.html",
-  CHECKOUT_STEP_ONE: "/checkout-step-one.html",
-  CHECKOUT_STEP_TWO: "/checkout-step-two.html",
-  CHECKOUT_COMPLETE: "/checkout-complete.html",
-  PRODUCT_DETAIL: (productName) => `/inventory-item.html?id=${productName}`,
-});
-
-export const ROUTES = Object.freeze({
-  DASHBOARD,
-  SAUCEDEMO,
-});
-
-/**
- * Returns the full URL for a given route constant.
- * @param {string} path - A ROUTES constant value
- * @returns {string}
- */
-export const getFullUrl = (path) => `${Cypress.env("baseUrl")}${path}`;
+export function getFullUrl(route) {
+  const baseUrl = Cypress.config("baseUrl");
+  if (!baseUrl) {
+    throw new Error("Set baseUrl before resolving application routes.");
+  }
+  return `${baseUrl.replace(/\/$/, "")}/${String(route).replace(/^\//, "")}`;
+}

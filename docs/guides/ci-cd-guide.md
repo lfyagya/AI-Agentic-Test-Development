@@ -49,7 +49,8 @@ Set these in **Repository Settings → Secrets and variables → Actions**:
 | `CYPRESS_USERNAME` | Test user login |
 | `CYPRESS_PASSWORD` | Test user password |
 | `CYPRESS_AUTH_URL` | Auth endpoint (e.g. `/api/auth/login`) |
-| `CYPRESS_RECORD_KEY` | Cypress Cloud record key (optional — enables recording) |
+| `CYPRESS_PROJECT_ID` | Cypress Cloud project id (optional; required only for recording) |
+| `CYPRESS_RECORD_KEY` | Cypress Cloud record key (optional secret; required only for recording) |
 
 Create one set of secrets per environment using **GitHub Environments** (Settings → Environments):
 
@@ -90,7 +91,15 @@ Every run uploads artifacts (pass or fail). Find them in **Actions → [run] →
 Download the artifact, open `reports/index.html` in a browser. Failed tests show the error, the command that failed, and a screenshot if one was captured.
 
 ### Cypress Cloud (optional)
-If `CYPRESS_RECORD_KEY` is set, results are also recorded to Cypress Cloud for:
+
+Cypress Cloud is not required to run this boilerplate. `npm run cy:run` and the CI jobs run without
+contacting Cypress Cloud when the two Cloud secrets are absent.
+
+Recording activates only when both `CYPRESS_PROJECT_ID` and `CYPRESS_RECORD_KEY` are configured.
+The record key must remain an operating-system/CI secret; do not place it in `cypress.env.json`.
+For an explicit local or custom-CI recording, run `npm run cy:run:cloud`.
+
+Recorded runs provide:
 - Test replay with time-travel debugging
 - Flakiness detection across runs
 - Parallel run coordination

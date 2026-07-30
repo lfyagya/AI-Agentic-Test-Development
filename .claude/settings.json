@@ -1,12 +1,13 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_generated": "From harness.config.json by scripts/harness/sync.mjs. Do not edit.",
   "hooks": {
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/prompt-duplication-guard.mjs"
+            "command": "node -e \"const p=require('node:path'),u=require('node:url');const r=process.env.CURSOR_PROJECT_DIR||process.env.CLAUDE_PROJECT_DIR||process.cwd();import(u.pathToFileURL(p.join(r,'.claude','hooks',process.argv[1])).href)\" \"prompt-duplication-guard.mjs\""
           }
         ]
       }
@@ -17,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/pre-validate-cypress-rules.mjs"
+            "command": "node -e \"const p=require('node:path'),u=require('node:url');const r=process.env.CURSOR_PROJECT_DIR||process.env.CLAUDE_PROJECT_DIR||process.cwd();import(u.pathToFileURL(p.join(r,'.claude','hooks',process.argv[1])).href)\" \"pre-validate-cypress-rules.mjs\""
           }
         ]
       }
@@ -28,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/validate-cypress-rules.mjs"
+            "command": "node -e \"const p=require('node:path'),u=require('node:url');const r=process.env.CURSOR_PROJECT_DIR||process.env.CLAUDE_PROJECT_DIR||process.cwd();import(u.pathToFileURL(p.join(r,'.claude','hooks',process.argv[1])).href)\" \"validate-cypress-rules.mjs\""
           }
         ]
       }
@@ -38,13 +39,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/session-end-reminder.mjs"
+            "command": "node -e \"const p=require('node:path'),u=require('node:url');const r=process.env.CURSOR_PROJECT_DIR||process.env.CLAUDE_PROJECT_DIR||process.cwd();import(u.pathToFileURL(p.join(r,'.claude','hooks',process.argv[1])).href)\" \"session-end-reminder.mjs\""
           }
         ]
       }
     ]
   },
-  "effortLevel": "medium",
+  "effortLevel": "high",
+  "alwaysThinkingEnabled": true,
+  "autoMemoryEnabled": true,
   "permissions": {
     "defaultMode": "plan",
     "allow": [
@@ -52,10 +55,13 @@
       "Bash(npm run cy:run*)",
       "Bash(npm run lint*)",
       "Bash(npm run format*)",
+      "Bash(npm run harness:*)",
       "Bash(npx cypress*)",
       "Bash(grep -r* cypress/*)",
       "Bash(find cypress/*)"
     ],
-    "deny": ["WebSearch"]
+    "deny": [
+      "WebSearch"
+    ]
   }
 }

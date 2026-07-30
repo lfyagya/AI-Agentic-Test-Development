@@ -1,0 +1,17 @@
+{
+  "id": "PAY-CHECKOUT-001",
+  "module": "checkout",
+  "title": "creates order when cart and payment are valid",
+  "acceptanceCriteria": [
+    "The order is persisted",
+    "A confirmation identifier is visible"
+  ],
+  "preconditions": ["An authenticated synthetic user has a valid cart"],
+  "expectedOutcome": "The order confirmation is displayed exactly once",
+  "type": "SMOKE",
+  "priority": "P0",
+  "tier": "smoke",
+  "path": "positive",
+  "status": "draft",
+  "source": "<ticket, specification, or source path>"
+}

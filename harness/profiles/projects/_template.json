@@ -1,0 +1,32 @@
+{
+  "$comment": "Copy this to <key>.json and fill it in. This is the ONLY file a new project authors. Everything else — rules, agents, hooks, permissions, paths — comes from the adapter baseline.",
+
+  "key": "<short-kebab-key>",
+  "displayName": "<Project Name>",
+  "owner": "<a person, not a team>",
+
+  "adapter": "cypress",
+  "language": "javascript",
+
+  "projectName": "<name written into harness.config.json project.name>",
+  "repo": "<path or URL of the repo this composes into>",
+
+  "$overrides": "Optional. Omit the whole block to take adapter defaults. Only add a key here when this project genuinely differs — an override you did not need is config that will drift.",
+  "overrides": {
+    "$context": "Model effort and memory. Adapter default is high + alwaysThinking + autoMemory.",
+    "context": {
+      "effortLevel": "high"
+    },
+
+    "$loops": "Bounded repair. Adapter default is gateRepairLimit 3.",
+    "loops": {
+      "gateRepairLimit": 3
+    },
+
+    "$adapters": "Which AI tools get generated projections. Disable one and its files are removed on the next sync.",
+    "adapters": {
+      "claude": { "enabled": true },
+      "copilot": { "enabled": true }
+    }
+  }
+}

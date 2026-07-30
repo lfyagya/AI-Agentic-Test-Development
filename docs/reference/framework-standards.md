@@ -1,6 +1,6 @@
 # Framework Standards
 
-> **This is an explanation doc.** It answers *why* the architecture is designed the way it is — not just what the rules are. Read this once. Refer back when a rule feels arbitrary.
+> **This is an explanation doc.** It answers _why_ the architecture is designed the way it is — not just what the rules are. Read this once. Refer back when a rule feels arbitrary.
 
 ---
 
@@ -57,15 +57,15 @@ flowchart TD
 
 ## Non-Negotiable Rules
 
-| # | Rule | Why it exists |
-| - | ---- | ------------- |
-| 1 | No page objects, no `*.actions.js` files | Dual ownership causes drift — two places describe the same thing and they diverge. Commands own all logic with explicit, single ownership. |
-| 2 | No `cy.wait(number)` | Hard waits are lies. They mask timing problems instead of solving them. Use `cy.apiWait('@alias')` or `.should('be.visible')` — both wait for the actual condition. |
-| 3 | `[data-cy="..."]` selectors only | CSS classes and IDs change with every refactor. `data-cy` attributes are test-only contracts — stable, explicit, and decoupled from styling. |
-| 4 | Auth via `cy.ensureAuthenticated()` only | Wraps `cy.session()` caching. Without it, every test performs a full login. With it, the session is reused across tests in the same spec — orders of magnitude faster. |
-| 5 | Intercepts registered before `cy.visit()` | Network requests fire the moment the page loads. If you register an intercept after `cy.visit()`, the request has already passed and Cypress never sees it. |
-| 6 | State reset in `beforeEach`, not `afterEach` | `afterEach` does not run when a test fails. State left behind by a failed test contaminates the next one. `beforeEach` always runs — it is the only reliable reset point. |
-| 7 | All URL paths from `ROUTES` constants | A hardcoded `/payments` in a test breaks silently when the route changes to `/finance/payments`. Constants fail loudly at import time. |
+| #   | Rule                                         | Why it exists                                                                                                                                                             |
+| --- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | No page objects, no `*.actions.js` files     | Dual ownership causes drift — two places describe the same thing and they diverge. Commands own all logic with explicit, single ownership.                                |
+| 2   | No `cy.wait(number)`                         | Hard waits are lies. They mask timing problems instead of solving them. Use `cy.apiWait('@alias')` or `.should('be.visible')` — both wait for the actual condition.       |
+| 3   | `[data-cy="..."]` selectors only             | CSS classes and IDs change with every refactor. `data-cy` attributes are test-only contracts — stable, explicit, and decoupled from styling.                              |
+| 4   | Auth via `cy.ensureAuthenticated()` only     | Wraps `cy.session()` caching. Without it, every test performs a full login. With it, the session is reused across tests in the same spec — orders of magnitude faster.    |
+| 5   | Intercepts registered before `cy.visit()`    | Network requests fire the moment the page loads. If you register an intercept after `cy.visit()`, the request has already passed and Cypress never sees it.               |
+| 6   | State reset in `beforeEach`, not `afterEach` | `afterEach` does not run when a test fails. State left behind by a failed test contaminates the next one. `beforeEach` always runs — it is the only reliable reset point. |
+| 7   | All URL paths from `ROUTES` constants        | A hardcoded `/payments` in a test breaks silently when the route changes to `/finance/payments`. Constants fail loudly at import time.                                    |
 
 ---
 
@@ -80,15 +80,15 @@ cypress/support/commands/modules/payments.commands.js
 cypress/tests/payments/smoke/payments-smoke.cy.js
 ```
 
-| Layer | File pattern | Example |
-| ----- | ------------ | ------- |
-| API config | `[name].api.js` | `payments.api.js` |
-| UI config | `[name].ui.js` | `payments.ui.js` |
-| Commands | `[name].commands.js` | `payments.commands.js` |
+| Layer      | File pattern         | Example                |
+| ---------- | -------------------- | ---------------------- |
+| API config | `[name].api.js`      | `payments.api.js`      |
+| UI config  | `[name].ui.js`       | `payments.ui.js`       |
+| Commands   | `[name].commands.js` | `payments.commands.js` |
 | Smoke spec | `[name]-smoke.cy.js` | `payments-smoke.cy.js` |
-| E2E spec | `[name]-e2e.cy.js` | `payments-e2e.cy.js` |
-| Schema | `[name].schema.js` | `payments.schema.js` |
-| Fixture | `[name].json` | `payments.json` |
+| E2E spec   | `[name]-e2e.cy.js`   | `payments-e2e.cy.js`   |
+| Schema     | `[name].schema.js`   | `payments.schema.js`   |
+| Fixture    | `[name].json`        | `payments.json`        |
 
 Folder names: **kebab-case**. No camelCase, no underscores.
 
@@ -96,12 +96,12 @@ Folder names: **kebab-case**. No camelCase, no underscores.
 
 ## Selector Strategy
 
-| Score | Strategy | Example | When to use |
-| ----- | --------- | ------- | ----------- |
-| 10/10 | `data-cy` attribute | `[data-cy="submit-btn"]` | Always — add to the app if missing |
-| 3/10 | CSS class | `.btn-primary` | Never in new code |
-| 2/10 | Tag + text | `button:contains("Save")` | Never in new code |
-| 1/10 | XPath | `//button[@id="save"]` | Never |
+| Score | Strategy            | Example                   | When to use                        |
+| ----- | ------------------- | ------------------------- | ---------------------------------- |
+| 10/10 | `data-cy` attribute | `[data-cy="submit-btn"]`  | Always — add to the app if missing |
+| 3/10  | CSS class           | `.btn-primary`            | Never in new code                  |
+| 2/10  | Tag + text          | `button:contains("Save")` | Never in new code                  |
+| 1/10  | XPath               | `//button[@id="save"]`    | Never                              |
 
 **Only 10/10 is acceptable.** If a `data-cy` attribute does not exist, coordinate with the development team to add it. Do not write a test that depends on a CSS class.
 
@@ -115,23 +115,29 @@ Tags control which tests run in which CI pipeline. Apply them consistently.
 
 ```javascript
 describe("Payments", { tags: ["@payments"] }, () => {
-  it("loads the list", { tags: ["@smoke"] }, () => { /* ... */ });
-  it("validates pagination", { tags: ["@e2e"] }, () => { /* ... */ });
-  it("handles empty state", { tags: ["@e2e"] }, () => { /* ... */ });
+  it("loads the list", { tags: ["@smoke"] }, () => {
+    /* ... */
+  });
+  it("validates pagination", { tags: ["@e2e"] }, () => {
+    /* ... */
+  });
+  it("handles empty state", { tags: ["@e2e"] }, () => {
+    /* ... */
+  });
 });
 ```
 
-| Tag | Meaning | When it runs |
-| --- | ------- | ------------ |
-| `@smoke` | Critical path, fast | Every commit, every PR |
-| `@e2e` | Full flow, slower | Nightly, pre-release |
-| `@[module]` | Module-specific | When that module changes |
+| Tag         | Meaning             | When it runs             |
+| ----------- | ------------------- | ------------------------ |
+| `@smoke`    | Critical path, fast | Every commit, every PR   |
+| `@e2e`      | Full flow, slower   | Nightly, pre-release     |
+| `@[module]` | Module-specific     | When that module changes |
 
 Run a subset locally:
 
 ```bash
-npx cypress run --env grepTags=@smoke
-npx cypress run --env grepTags=@payments
+npx cypress run --expose grepTags=@smoke
+npx cypress run --expose grepTags=@payments
 ```
 
 ---
