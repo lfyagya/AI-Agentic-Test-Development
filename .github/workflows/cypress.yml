@@ -53,6 +53,20 @@ jobs:
           CYPRESS_configFile: ${{ inputs.environment || (github.event_name == 'push' && 'qa') || 'dev' }}
           CYPRESS_PROJECT_ID: ${{ secrets.CYPRESS_PROJECT_ID }}
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+      # Feeds M2 (first-pass CI rate). Only attempt 1 counts, so a re-run does not launder a
+      # failure into a pass. Runs before evidence:build so M2 includes this run.
+      #
+      # NOTE: this writes to the throwaway checkout. The row reaches the uploaded artifact but
+      # does NOT persist to the tracked evidence/ci-history.jsonl. For a durable M2, either add a
+      # commit-back job on main, or backfill locally from the Actions API. See docs/START-HERE.md.
+      - name: Record CI outcome for M2
+        if: always() && job.status != 'cancelled'
+        run: >
+          node scripts/record-evidence.mjs ci
+          --pipeline "${{ github.run_id }}"
+          --trigger "${{ github.event_name == 'pull_request' && 'pr' || (github.event_name == 'push' && 'push' || 'manual') }}"
+          --attempt "${{ github.run_attempt }}"
+          --outcome "${{ job.status == 'success' && 'passed' || 'failed' }}"
       - name: Build machine evidence
         if: always()
         run: npm run evidence:build

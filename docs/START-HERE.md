@@ -143,13 +143,40 @@ Metrics:
 
 Unavailable inputs produce `null` with a reason. They never become misleading zeroes.
 
-Optional JSONL records:
+### Recording M1, M2, and M4
 
-```json
-{"requirementId":"PAY-CHECKOUT-001","attempt":1,"verdict":"PASS","timestamp":"<ISO>"}
-{"pipelineId":"<id>","trigger":"pr","attempt":1,"outcome":"passed","failureClass":null}
-{"requirementId":"PAY-CHECKOUT-001","minutes":45,"accepted":true}
+M5 is automatic and M3 accrues from run history. The other three read JSONL ledgers that must be
+appended. Use the recorder — it validates every field, so a typo cannot silently understate a metric:
+
+```bash
+npm run evidence:record -- gate --requirement PAY-CHECKOUT-001 --attempt 1 --verdict PASS
 ```
+
+```bash
+npm run evidence:record -- effort --requirement PAY-CHECKOUT-001 --minutes 45
+```
+
+```bash
+npm run evidence:record -- ci --pipeline 4242 --trigger pr --attempt 1 --outcome passed
+```
+
+Record the gate verdict **after** step 4. `pre-merge-qa-gate` cannot record its own verdict — it has
+no Write and no Bash by design, so the thing being measured never writes its own scorecard.
+
+`--verdict` is `PASS`, `PASS_WITH_ACTIONS`, or `BLOCK`. Add `--failure-class ENV` to a failed CI row
+so an infrastructure outage is not counted as a test failure. Add `--accepted false` to effort spent
+on a scenario that was not accepted.
+
+**Only `attempt: 1` counts** toward M1 and M2. Measuring after repairs measures persistence, not
+quality. The recorder refuses a duplicate `gate` or `ci` row for the same id and attempt, because a
+double append would inflate the metric; `--force` overrides it if the second observation is genuinely
+separate.
+
+CI records its own row automatically (see the workflow). **That row reaches the uploaded artifact but
+does not persist to the tracked ledger** — the job writes to a throwaway checkout. For a durable M2,
+either add a commit-back job on `main` or backfill periodically from the Actions API.
+
+These three ledgers are tracked in git. They are the durable record; run outputs are not.
 
 ## Definition of complete
 
