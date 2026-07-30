@@ -212,6 +212,11 @@ Hooks in `.claude/hooks/` enforce these automatically on every file write.
 6. Spec          → cypress/tests/[module]/smoke/[module]-smoke.cy.js
 ```
 
+> **Step 1 template:** copy `cypress/configs/api/modules/example/example.api.js` — it is the
+> reference shape for every API config, with usage for `cy.apiIntercept`/`apiWait`/`apiStub`/`apiRequest`.
+> The `saucedemo/` module has no API config because saucedemo.com is client-side only and makes
+> no backend calls to intercept.
+
 ---
 
 ## Pre-Merge Checklist

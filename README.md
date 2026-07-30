@@ -174,6 +174,11 @@ export const PAYMENTS_API = Object.freeze({
 });
 ```
 
+Copy `cypress/configs/api/modules/example/example.api.js` as your starting point — it carries the
+full CRUD shape plus usage notes for `cy.apiIntercept` / `apiWait` / `apiStub` / `apiRequest`.
+The `saucedemo/` reference module has no API config: saucedemo.com is client-side only, so there
+is no backend call to intercept.
+
 > Full guide: [docs/guides/framework-maintenance-guide.md](docs/guides/framework-maintenance-guide.md)
 
 ---
