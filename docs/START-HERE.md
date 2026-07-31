@@ -179,7 +179,21 @@ Generated files are **not** prettier-formatted, deliberately: prettier realigns 
 table and collapses arrays that `JSON.stringify` expands, so formatting an artifact makes its
 generator report drift. `.prettierignore` shields them; the format gate checks the sources.
 
-### 3.1 What the config owns
+### 3.1 Memory is the one layer that is not reproducible
+
+`.claude/settings.json` sets `autoMemoryEnabled: true` — which is also the schema default, so the line
+documents intent rather than changing behaviour. Memory accumulates in
+`~/.claude/projects/<project>/memory/`, and `autoMemoryDirectory` is deliberately left unset.
+
+That means memory is **per machine and per person**. It is not committed, not versioned, and not shared:
+two engineers on the same project build separate private memory, and a fresh clone starts with none.
+
+This is called out because everything else here is derived from config and reproducible — agents,
+rules, hooks, evidence, metrics. Memory is the exception, and it would be easy to assume otherwise.
+It is left that way on purpose: auto-memory captures one person's session, and committing that to a
+repo every teammate clones would be the wrong default. Nothing in the harness depends on it.
+
+### 3.2 What the config owns
 
 | Key                    | Owns                                                   |
 | ---------------------- | ------------------------------------------------------ |
@@ -285,9 +299,14 @@ flowchart LR
     style DI fill:#fce8e6,stroke:#ea4335,color:#111
 ```
 
-The `EVALUATE → BUILD` repair loop is bounded by `loops.gateRepairLimit` (3). After three failed
-repairs it stops and escalates to a human. An unbounded repair loop is how an agent burns a budget
-converging on nothing.
+The `EVALUATE → BUILD` repair loop carries a declared bound, `loops.gateRepairLimit` (3), and it is
+worth being precise about what that is: **an instruction, not a counter.** The limit is validated when
+the config is generated and injected into the BUILD and EVALUATE agent bodies, but no code counts
+attempts — the harness does not orchestrate the loop, so there is no runtime to enforce it in.
+
+It is observable after the fact rather than prevented: `evidence/gate-log.jsonl` records `attempt` on
+every row, and M1 counts only `attempt: 1`, so a loop that ran away shows up in the ledger. If you want
+it prevented rather than recorded, the enforcement point is whatever drives the loop — a human, or CI.
 
 ### 5.1 The roster
 
