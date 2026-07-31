@@ -25,9 +25,19 @@ const REQUIRED = [
   "hooks",
   "permissions",
 ];
-const ROLES = ["GATHER", "DISCOVER", "BUILD", "DIAGNOSE", "EVALUATE", "SHIP", "MAINTAIN"];
+const ROLES = [
+  "GATHER",
+  "DISCOVER",
+  "BUILD",
+  "DIAGNOSE",
+  "EVALUATE",
+  "SHIP",
+  "MAINTAIN",
+];
 
-const profiles = fs.readdirSync(PROFILES).filter((f) => f.endsWith(".json") && !f.startsWith("_"));
+const profiles = fs
+  .readdirSync(PROFILES)
+  .filter((f) => f.endsWith(".json") && !f.startsWith("_"));
 assert.ok(profiles.length > 0, "no profiles found");
 
 const adapters = fs.readdirSync(ADAPTERS).map((f) => f.replace(/\.json$/, ""));
@@ -47,8 +57,13 @@ for (const file of profiles) {
   assert.ok(config.rules.length > 0, `${file}: no rules`);
   assert.equal(config.agents.length, 7, `${file}: expected 7 roles`);
   const roles = config.agents.map((a) => a.role);
-  for (const role of ROLES) assert.ok(roles.includes(role), `${file}: missing role ${role}`);
-  assert.equal(config.project.name, profile.projectName, `${file}: project.name mismatch`);
+  for (const role of ROLES)
+    assert.ok(roles.includes(role), `${file}: missing role ${role}`);
+  assert.equal(
+    config.project.name,
+    profile.projectName,
+    `${file}: project.name mismatch`,
+  );
 
   // The gate must stay read-only. This is the constraint the whole split exists to protect:
   // give EVALUATE Write or Bash and the builder can grade its own output.
@@ -69,12 +84,19 @@ const overridden = compose({
 });
 assert.equal(overridden.loops.gateRepairLimit, 9, "loops override ignored");
 assert.equal(overridden.context.effortLevel, "low", "context override ignored");
-assert.equal(overridden.context.autoMemoryEnabled, true, "override clobbered sibling defaults");
+assert.equal(
+  overridden.context.autoMemoryEnabled,
+  true,
+  "override clobbered sibling defaults",
+);
 
 // A profile missing required facts fails loudly rather than emitting a broken config.
 assert.throws(() => compose({ key: "x", adapter }), /projectName/);
 assert.throws(() => compose({ key: "x", projectName: "y" }), /adapter/);
-assert.throws(() => compose({ key: "x", adapter: "nope", projectName: "y" }), /Unknown adapter/);
+assert.throws(
+  () => compose({ key: "x", adapter: "nope", projectName: "y" }),
+  /Unknown adapter/,
+);
 
 console.log(
   `[profile] ${profiles.length} profile(s), ${adapters.length} adapter(s) — all checks passed`,

@@ -3,7 +3,10 @@ import { execSync } from "node:child_process";
 
 function runGit(cmd) {
   try {
-    return execSync(cmd, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    return execSync(cmd, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
   } catch {
     return "";
   }

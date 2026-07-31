@@ -15,15 +15,15 @@ To allow a command without prompting, add it to the `allow` list below. Do not s
 
 ## Allowed Commands
 
-| Command pattern | Reason |
-| --------------- | ------ |
-| `Bash(npm run cy:open*)` | Run the Cypress interactive runner |
-| `Bash(npm run cy:run*)` | Run tests headless (all, smoke, tag-filtered) |
-| `Bash(npm run lint*)` | Code quality checks before commit |
-| `Bash(npm run format*)` | Auto-format changed files |
-| `Bash(npx cypress*)` | Direct Cypress CLI access for debugging |
-| `Bash(grep -r* cypress/*)` | Read-only content search inside cypress/ |
-| `Bash(find cypress/*)` | Read-only file discovery inside cypress/ |
+| Command pattern            | Reason                                        |
+| -------------------------- | --------------------------------------------- |
+| `Bash(npm run cy:open*)`   | Run the Cypress interactive runner            |
+| `Bash(npm run cy:run*)`    | Run tests headless (all, smoke, tag-filtered) |
+| `Bash(npm run lint*)`      | Code quality checks before commit             |
+| `Bash(npm run format*)`    | Auto-format changed files                     |
+| `Bash(npx cypress*)`       | Direct Cypress CLI access for debugging       |
+| `Bash(grep -r* cypress/*)` | Read-only content search inside cypress/      |
+| `Bash(find cypress/*)`     | Read-only file discovery inside cypress/      |
 
 All allowed commands are either read-only searches or commands that run the test suite. No write operations are pre-approved.
 
@@ -40,12 +40,12 @@ If your team adds a use case that genuinely requires web search (e.g. checking n
 
 ## Hooks
 
-| Hook event | File | What it does |
-| ---------- | ---- | ------------ |
-| `UserPromptSubmit` | `prompt-duplication-guard.mjs` | Reminds Claude to search before creating new configs or commands |
-| `PreToolUse` (Edit\|Write) | `pre-validate-cypress-rules.mjs` | Blocks a file write if it contains rule violations |
-| `PostToolUse` (Edit\|Write) | `validate-cypress-rules.mjs` | Catches violations that passed the pre-check (safety net) |
-| `Stop` | `session-end-reminder.mjs` | Prints the pre-merge checklist when the session ends with Cypress changes |
+| Hook event                  | File                             | What it does                                                              |
+| --------------------------- | -------------------------------- | ------------------------------------------------------------------------- |
+| `UserPromptSubmit`          | `prompt-duplication-guard.mjs`   | Reminds Claude to search before creating new configs or commands          |
+| `PreToolUse` (Edit\|Write)  | `pre-validate-cypress-rules.mjs` | Blocks a file write if it contains rule violations                        |
+| `PostToolUse` (Edit\|Write) | `validate-cypress-rules.mjs`     | Catches violations that passed the pre-check (safety net)                 |
+| `Stop`                      | `session-end-reminder.mjs`       | Prints the pre-merge checklist when the session ends with Cypress changes |
 
 Both pre and post validation hooks share rules via `shared-rules.mjs`. To add a new rule, edit `shared-rules.mjs` only — it applies to both hooks automatically.
 

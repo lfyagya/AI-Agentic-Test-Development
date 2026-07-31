@@ -52,7 +52,7 @@ Legitimate exceptions (e.g. `cy.get('body')` for framework-level checks) are dec
 ## Update — 31 July 2026
 
 This decision stands, but the mechanism moved. Rules are now declared once in `harness.config.json`
-and *generated* into every adapter by `npm run harness:sync`. Consequently:
+and _generated_ into every adapter by `npm run harness:sync`. Consequently:
 
 - `.github/instructions/*.instructions.md` and `.github/FRAMEWORK_RULES.md` were retired. They were
   hand-maintained restatements of the same rules and drifted from the config.

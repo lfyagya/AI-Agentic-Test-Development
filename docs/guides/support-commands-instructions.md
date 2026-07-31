@@ -6,15 +6,15 @@
 
 ## Quick Reference
 
-| Command type | Naming pattern | Example |
-| ------------ | -------------- | ------- |
+| Command type        | Naming pattern              | Example                    |
+| ------------------- | --------------------------- | -------------------------- |
 | Register intercepts | `intercept[Module]Requests` | `interceptPaymentRequests` |
-| Navigate to a page | `visit[Module]` | `visitPayments` |
-| Load a list | `load[Module]List` | `loadPaymentList` |
-| Search or filter | `search[Module]` | `searchPayments` |
-| Create a record | `create[Module]` | `createPayment` |
-| Assert page loaded | `assert[Module]Loaded` | `assertPaymentsLoaded` |
-| Assert a state | `assert[Module][State]` | `assertPaymentEmpty` |
+| Navigate to a page  | `visit[Module]`             | `visitPayments`            |
+| Load a list         | `load[Module]List`          | `loadPaymentList`          |
+| Search or filter    | `search[Module]`            | `searchPayments`           |
+| Create a record     | `create[Module]`            | `createPayment`            |
+| Assert page loaded  | `assert[Module]Loaded`      | `assertPaymentsLoaded`     |
+| Assert a state      | `assert[Module][State]`     | `assertPaymentEmpty`       |
 
 All commands are **verb-first**, camelCase, registered globally via `Cypress.Commands.add`.
 
@@ -146,26 +146,26 @@ grep -r "Cypress.Commands.add" cypress/support/commands/ | grep "commandName"
 
 If it exists — extend it, do not duplicate it. If it does not exist — add it to the correct file (common or module-level).
 
-| Command scope | File location |
-| ------------- | ------------- |
-| Used by one module only | `commands/modules/[name].commands.js` |
+| Command scope            | File location                                               |
+| ------------------------ | ----------------------------------------------------------- |
+| Used by one module only  | `commands/modules/[name].commands.js`                       |
 | Used by multiple modules | `commands/common/ui.commands.js` or appropriate common file |
-| Auth, session | `commands/common/auth.commands.js` |
-| Navigation helpers | `commands/common/navigation.commands.js` |
-| Table interactions | `commands/common/table.commands.js` |
+| Auth, session            | `commands/common/auth.commands.js`                          |
+| Navigation helpers       | `commands/common/navigation.commands.js`                    |
+| Table interactions       | `commands/common/table.commands.js`                         |
 
 ---
 
 ## What NOT to Put in a Command
 
-| Anti-pattern | Why | Fix |
-| ------------ | --- | --- |
-| `cy.wait(3000)` | Timing-dependent, fails on slow machines | Replace with `cy.apiWait('@alias')` or `.should()` |
-| Hardcoded URL strings | Breaks silently when routes change | Import from `ROUTES` constants |
-| Raw CSS selectors like `.btn-primary` | Breaks when styles are refactored | Use `[data-cy]` via `cy.getByTestId()` |
-| `if/else` logic | Commands are actions, not decision trees | Split into two separate commands |
-| Test assertions in action commands | Mixes concerns — actions and assertions have different owners | Move to a dedicated `assert*` command |
-| Duplicate intercept patterns | Second intercept silently overrides the first | Centralise in one `intercept*` command |
+| Anti-pattern                          | Why                                                           | Fix                                                |
+| ------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------- |
+| `cy.wait(3000)`                       | Timing-dependent, fails on slow machines                      | Replace with `cy.apiWait('@alias')` or `.should()` |
+| Hardcoded URL strings                 | Breaks silently when routes change                            | Import from `ROUTES` constants                     |
+| Raw CSS selectors like `.btn-primary` | Breaks when styles are refactored                             | Use `[data-cy]` via `cy.getByTestId()`             |
+| `if/else` logic                       | Commands are actions, not decision trees                      | Split into two separate commands                   |
+| Test assertions in action commands    | Mixes concerns — actions and assertions have different owners | Move to a dedicated `assert*` command              |
+| Duplicate intercept patterns          | Second intercept silently overrides the first                 | Centralise in one `intercept*` command             |
 
 ---
 
@@ -199,16 +199,16 @@ The correct version is shorter, readable, and resilient to UI changes. The wrong
 
 These are already registered and available in all specs and commands:
 
-| Command | What it does |
-| ------- | ------------ |
-| `cy.ensureAuthenticated()` | Session-cached login — call in `beforeEach()` |
-| `cy.logout()` | Clears session and navigates to login |
-| `cy.getByTestId(id)` | Shorthand for `cy.get('[data-cy="id"]')` |
-| `cy.getByDataTest(id)` | Shorthand for `cy.get('[data-test="id"]')` |
-| `cy.step(message)` | Logs a labelled step to the Cypress command log |
-| `cy.apiIntercept(config, key)` | Registers one API intercept by key |
-| `cy.apiInterceptAll(config)` | Registers all intercepts in an API config at once |
-| `cy.apiWait(alias)` | Waits for a registered intercept |
-| `cy.apiWaitAll(aliases)` | Waits for multiple intercepts simultaneously |
-| `cy.apiStub(config, key, response)` | Returns a mocked response |
-| `cy.validateSchema(body, schema)` | Validates response body against a JSON schema |
+| Command                             | What it does                                      |
+| ----------------------------------- | ------------------------------------------------- |
+| `cy.ensureAuthenticated()`          | Session-cached login — call in `beforeEach()`     |
+| `cy.logout()`                       | Clears session and navigates to login             |
+| `cy.getByTestId(id)`                | Shorthand for `cy.get('[data-cy="id"]')`          |
+| `cy.getByDataTest(id)`              | Shorthand for `cy.get('[data-test="id"]')`        |
+| `cy.step(message)`                  | Logs a labelled step to the Cypress command log   |
+| `cy.apiIntercept(config, key)`      | Registers one API intercept by key                |
+| `cy.apiInterceptAll(config)`        | Registers all intercepts in an API config at once |
+| `cy.apiWait(alias)`                 | Waits for a registered intercept                  |
+| `cy.apiWaitAll(aliases)`            | Waits for multiple intercepts simultaneously      |
+| `cy.apiStub(config, key, response)` | Returns a mocked response                         |
+| `cy.validateSchema(body, schema)`   | Validates response body against a JSON schema     |
