@@ -36,6 +36,30 @@ tag such as `@e2e` or `@ddt`.
 - Remove duplication and dead or commented-out code. Use descriptive data names instead of magic
   values.
 
+### Locator contract
+
+Prefer locators that describe **intent** over locators that describe **structure**. In order:
+
+| Priority | Locate by                                             | Use for                                |
+| -------: | ----------------------------------------------------- | -------------------------------------- |
+|        1 | Accessible role plus its name                         | Interactive elements                   |
+|        2 | Associated label                                      | Form controls                          |
+|        3 | Visible text                                          | Non-interactive assertions             |
+|        4 | An explicit test attribute (`data-testid`, `data-cy`) | An intentional test contract           |
+|        5 | CSS or XPath                                          | Last resort only, with a stated reason |
+
+A structural selector is a bet that the DOM will not change. Levels 1–3 survive a refactor that
+levels 4–5 do not, and they double as accessibility pressure on the application.
+
+When more than one element matches, **narrow with a content or descendant filter before reaching for
+an index**. An index silently targets the wrong element the moment the DOM shifts, and it fails as a
+passing test rather than an error — the worst failure mode. If no filter can disambiguate, that is a
+finding about the application's testability, not a reason to reach for position.
+
+Neither rule is enforced at write time: deciding whether a given locator had a better alternative
+needs real analysis, not a regex, and a regex here produces false positives that teach people to
+ignore the hook. Both are graded by the independent gate instead.
+
 ### Independent gate grading
 
 The builder uses this rubric as acceptance criteria but never grades its own output. The
@@ -51,6 +75,8 @@ independent gate starts each changed test at 100 and applies every relevant dedu
 | `try/catch` hides failures or flakiness is masked |       -20 |
 | Created state has no failure-safe cleanup         |       -15 |
 | Requirement traceability is missing               |        -5 |
+| Structural locator where a semantic one exists    |       -10 |
+| Index used where a filter would disambiguate      |       -10 |
 
 A test needs at least 80/100 to pass. That score is necessary, not sufficient: missing required
 command evidence, credentials or unsafe data, state-changing smoke behavior, hidden failures, or
