@@ -16,6 +16,7 @@ import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { record } from "./record-evidence.mjs";
+import { parseArgs } from "./lib/cli.mjs";
 
 const TRIGGER_BY_EVENT = {
   pull_request: "pr",
@@ -82,22 +83,6 @@ function fetchRuns(workflow, limit) {
       return { ...run, jobs: [], runAttempt: 1 };
     }
   });
-}
-
-function parseArgs(tokens) {
-  const args = {};
-  for (let i = 0; i < tokens.length; i += 1) {
-    if (!tokens[i].startsWith("--")) continue;
-    const key = tokens[i].slice(2);
-    const next = tokens[i + 1];
-    if (!next || next.startsWith("--")) {
-      args[key] = true;
-      continue;
-    }
-    args[key] = next;
-    i += 1;
-  }
-  return args;
 }
 
 const isMain =

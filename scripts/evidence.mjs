@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs, readJson, readJsonLines } from "./lib/cli.mjs";
 
 const ACTIVE = new Set(["active"]);
 const ACCEPTED = new Set(["PASS", "PASS_WITH_ACTIONS"]);
@@ -10,25 +11,6 @@ const REQUIREMENT_VALUES = {
   priority: new Set(["P0", "P1", "P2"]),
   tier: new Set(["smoke", "e2e", "ddt"]),
 };
-
-function readJson(file) {
-  return JSON.parse(fs.readFileSync(file, "utf8"));
-}
-
-function readJsonLines(file) {
-  if (!fs.existsSync(file)) return [];
-  return fs
-    .readFileSync(file, "utf8")
-    .split(/\r?\n/)
-    .filter(Boolean)
-    .map((line, index) => {
-      try {
-        return JSON.parse(line);
-      } catch {
-        throw new Error(`${file}:${index + 1} is not valid JSON`);
-      }
-    });
-}
 
 function writeJson(file, value) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -414,20 +396,12 @@ export function buildEvidence({
   return { summary, coverage, metrics };
 }
 
-function parseArguments(tokens) {
-  const args = {};
-  for (let index = 0; index < tokens.length; index += 2) {
-    args[tokens[index]?.replace(/^--/, "")] = tokens[index + 1];
-  }
-  return args;
-}
-
 const isMain =
   process.argv[1] &&
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   try {
-    const args = parseArguments(process.argv.slice(2));
+    const args = parseArgs(process.argv.slice(2));
     const result = buildEvidence({
       framework: args.framework,
       reportPath: args.report,

@@ -13,6 +13,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs, readJsonLines } from "./lib/cli.mjs";
 
 const VERDICTS = new Set(["PASS", "PASS_WITH_ACTIONS", "BLOCK"]);
 const TRIGGERS = new Set(["pr", "push", "manual", "schedule"]);
@@ -23,15 +24,6 @@ const LEDGERS = {
   ci: "ci-history.jsonl",
   effort: "effort-log.jsonl",
 };
-
-function readLines(file) {
-  if (!fs.existsSync(file)) return [];
-  return fs
-    .readFileSync(file, "utf8")
-    .split(/\r?\n/)
-    .filter(Boolean)
-    .map((line) => JSON.parse(line));
-}
 
 function requirementIds(root) {
   const file = path.join(root, "evidence", "requirements.json");
@@ -139,7 +131,7 @@ export function findDuplicate(kind, entry, existing) {
 export function record(kind, args, root = process.cwd()) {
   const entry = buildEntry(kind, args, root);
   const file = path.join(root, "evidence", LEDGERS[kind]);
-  const existing = readLines(file);
+  const existing = readJsonLines(file);
 
   const duplicate = findDuplicate(kind, entry, existing);
   if (duplicate && !args.force) {
@@ -153,22 +145,6 @@ export function record(kind, args, root = process.cwd()) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.appendFileSync(file, `${JSON.stringify(entry)}\n`, "utf8");
   return { file, entry, total: existing.length + 1 };
-}
-
-function parseArgs(tokens) {
-  const args = {};
-  for (let i = 0; i < tokens.length; i += 1) {
-    if (!tokens[i].startsWith("--")) continue;
-    const key = tokens[i].slice(2);
-    const next = tokens[i + 1];
-    if (!next || next.startsWith("--")) {
-      args[key] = true;
-      continue;
-    }
-    args[key] = next;
-    i += 1;
-  }
-  return args;
 }
 
 const isMain =

@@ -652,7 +652,29 @@ every TypeScript spec. Full detail: [typescript-guide.md](guides/typescript-guid
 
 ---
 
-## 12. What not to change
+## 12. Further reading
+
+This guide is self-contained; the documents below are supporting detail, indexed in
+[docs/README.md](README.md).
+
+| When you need                              | Document                                                                    |
+| ------------------------------------------ | --------------------------------------------------------------------------- |
+| TypeScript detail and the conversion path  | [typescript-guide.md](guides/typescript-guide.md)                           |
+| Hook events, adding a rule, the allowlist  | [hooks-explainer.md](guides/hooks-explainer.md)                             |
+| Writing custom commands                    | [support-commands-instructions.md](guides/support-commands-instructions.md) |
+| The API config layer and intercepts        | [api-layer-guide.md](reference/api-layer-guide.md)                          |
+| Why configs, commands, and tests are split | [test-organization.md](reference/test-organization.md)                      |
+| Framework standards in full                | [framework-standards.md](reference/framework-standards.md)                  |
+| The lifecycle contract as a spec           | [harness-lifecycle-spec.md](reference/harness-lifecycle-spec.md)            |
+| Adding or updating modules                 | [framework-maintenance-guide.md](guides/framework-maintenance-guide.md)     |
+| CI pipeline setup in detail                | [ci-cd-guide.md](guides/ci-cd-guide.md)                                     |
+| Project and module context templates       | [application-intelligence](application-intelligence/README.md)              |
+| Why the architecture is what it is         | [decisions](decisions/README.md)                                            |
+| Composing a config from a profile          | [harness/profiles/README.md](../harness/profiles/README.md)                 |
+
+---
+
+## 13. What not to change
 
 - **Framework-native architecture.** Command-first here, helper-first in Playwright. Both correctly
   reject page objects. Forcing one style across both produces worse tests in whichever loses.
