@@ -665,7 +665,7 @@ This guide is self-contained; the documents below are supporting detail, indexed
 | The API config layer and intercepts        | [api-layer-guide.md](reference/api-layer-guide.md)                          |
 | Why configs, commands, and tests are split | [test-organization.md](reference/test-organization.md)                      |
 | Framework standards in full                | [framework-standards.md](reference/framework-standards.md)                  |
-| The lifecycle contract as a spec           | [harness-lifecycle-spec.md](reference/harness-lifecycle-spec.md)            |
+| The lifecycle contract as a spec           | [harness-lifecycle-spec.md](architecture/harness-lifecycle-spec.md)         |
 | Adding or updating modules                 | [framework-maintenance-guide.md](guides/framework-maintenance-guide.md)     |
 | CI pipeline setup in detail                | [ci-cd-guide.md](guides/ci-cd-guide.md)                                     |
 | Project and module context templates       | [application-intelligence](application-intelligence/README.md)              |

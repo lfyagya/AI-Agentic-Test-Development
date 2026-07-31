@@ -3,14 +3,22 @@
 **Start with [START-HERE.md](START-HERE.md)** — the complete, self-contained harness guide.
 Everything below is supporting detail you reach for only when you need it.
 
+Taxonomy is identical in the Playwright adapter: `guides/` for how-to, `reference/` for lookup,
+`architecture/` for design and specs.
+
 ## Reference
 
 | Topic                                       | Document                                                              |
 | ------------------------------------------- | --------------------------------------------------------------------- |
-| Harness lifecycle contract                  | [harness-lifecycle-spec.md](reference/harness-lifecycle-spec.md)      |
 | Framework standards                         | [framework-standards.md](reference/framework-standards.md)            |
 | Why configs, commands, and tests are split  | [test-organization.md](reference/test-organization.md)                |
 | API intercepts and the API config layer     | [api-layer-guide.md](reference/api-layer-guide.md)                    |
+
+## Architecture
+
+| Topic                       | Document                                                            |
+| --------------------------- | ------------------------------------------------------------------- |
+| Harness lifecycle contract  | [harness-lifecycle-spec.md](architecture/harness-lifecycle-spec.md) |
 
 ## Guides
 
