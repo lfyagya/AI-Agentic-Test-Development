@@ -48,6 +48,7 @@ jobs:
           password:process.env.CYPRESS_PASSWORD,
           authUrl:process.env.CYPRESS_AUTH_URL}, null, 2))"
       - name: Run smoke tests
+        id: smoke
         run: npm run cy:run:smoke
         env:
           CYPRESS_configFile: ${{ inputs.environment || (github.event_name == 'push' && 'qa') || 'dev' }}
@@ -56,17 +57,31 @@ jobs:
       # Feeds M2 (first-pass CI rate). Only attempt 1 counts, so a re-run does not launder a
       # failure into a pass. Runs before evidence:build so M2 includes this run.
       #
-      # NOTE: this writes to the throwaway checkout. The row reaches the uploaded artifact but
-      # does NOT persist to the tracked evidence/ci-history.jsonl. For a durable M2, either add a
-      # commit-back job on main, or backfill locally from the Actions API. See docs/START-HERE.md.
+      # Classifies from the TEST STEP's outcome, not job.status. job.status is 'failure' whenever
+      # anything in the job fails — npm ci, browser install, a dead runner — and recording those as
+      # test failures would depress M2 with infrastructure noise. If the tests never ran, the row is
+      # marked ENV and evidence.mjs excludes it.
+      #
+      # NOTE: this writes to the throwaway checkout. The row reaches the uploaded artifact but does
+      # NOT persist to the tracked evidence/ci-history.jsonl, and a job that never starts records
+      # nothing at all. Backfill from the Actions API is the only mechanism that sees both cases.
+      # See docs/START-HERE.md.
       - name: Record CI outcome for M2
         if: always() && job.status != 'cancelled'
-        run: >
-          node scripts/record-evidence.mjs ci
-          --pipeline "${{ github.run_id }}"
-          --trigger "${{ github.event_name == 'pull_request' && 'pr' || (github.event_name == 'push' && 'push' || 'manual') }}"
-          --attempt "${{ github.run_attempt }}"
-          --outcome "${{ job.status == 'success' && 'passed' || 'failed' }}"
+        env:
+          TEST_OUTCOME: ${{ steps.smoke.outcome }}
+          TRIGGER: ${{ github.event_name == 'pull_request' && 'pr' || (github.event_name == 'push' && 'push' || 'manual') }}
+        run: |
+          case "$TEST_OUTCOME" in
+            success) CLASS="" ; RESULT="passed" ;;
+            failure) CLASS="" ; RESULT="failed" ;;
+            *)       CLASS="--failure-class ENV" ; RESULT="failed" ;;
+          esac
+          node scripts/record-evidence.mjs ci \
+            --pipeline "${{ github.run_id }}" \
+            --trigger "$TRIGGER" \
+            --attempt "${{ github.run_attempt }}" \
+            --outcome "$RESULT" $CLASS
       - name: Build machine evidence
         if: always()
         run: npm run evidence:build

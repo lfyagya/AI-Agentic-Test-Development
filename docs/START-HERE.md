@@ -20,16 +20,26 @@ tests. The harness derives project-specific automation only from verified source
 
 ```bash
 npm ci
-npm run harness:check
-npm run harness:test
-npm run check:rules
-npm run lint
-npm test
-npm run evidence:build
+npm run verify
 ```
 
-`npm test` must succeed with “No smoke specs yet.” `evidence/metrics.json` must report
+`verify` is the whole gate chain: `harness:check` → `harness:test` → `harness:format:check` →
+`check:rules` → `npm test` (with `lint` via `pretest`) → `evidence:build`. Run them individually to
+isolate a failure.
+
+`npm test` must succeed with “No specs yet.” `evidence/metrics.json` must report
 `status: "bootstrap"` and unavailable metrics—not fabricated zeroes.
+
+**No CI required.** The write-time hooks are the primary enforcement and cost nothing; CI is a
+backstop for human-authored code, since hooks only fire in Claude Code sessions. To run the gates
+automatically before every push, enable the shipped hook — no dependency, just core git:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Without CI you lose only M2, which measures CI itself and so reports `null` with a reason rather than
+pretending. M1, M3, M4 and M5 all work with no pipeline.
 
 ## 1. Gather verified project context
 

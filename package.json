@@ -27,6 +27,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "verify": "npm run harness:check && npm run harness:test && npm run harness:format:check && npm run check:rules && npm test && npm run evidence:build",
     "harness:sync": "node scripts/harness/sync.mjs",
     "harness:check": "node scripts/harness/check-drift.mjs",
     "harness:compose": "node harness/profiles/bin/compose-harness-config.mjs --profile harness/profiles/projects/cypress-boilerplate.json --out harness.config.json",
