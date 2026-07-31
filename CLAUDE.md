@@ -82,13 +82,12 @@ Zero tests is valid before project intake. `npm test` must pass without launchin
 ## Verification
 
 ```bash
-npm run harness:check
-npm run harness:test
-npm run check:rules
-npm run lint
-npm test
-npm run evidence:build
+npm run verify
 ```
 
+Runs `harness:check` → `harness:test` → `harness:format:check` → `check:rules` → `npm test` (with
+`lint` via `pretest`) → `evidence:build`. Run them individually to isolate a failure.
+
 Do not claim execution, coverage, or a metric without the corresponding command or source
-evidence. Optional paid services cannot be required for the baseline workflow.
+evidence. Optional paid services cannot be required for the baseline workflow — CI is a backstop for
+human-authored code, not the enforcement point. The write-time hooks are, and they cost nothing.

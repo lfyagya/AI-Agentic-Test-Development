@@ -182,9 +182,18 @@ quality. The recorder refuses a duplicate `gate` or `ci` row for the same id and
 double append would inflate the metric; `--force` overrides it if the second observation is genuinely
 separate.
 
-CI records its own row automatically (see the workflow). **That row reaches the uploaded artifact but
-does not persist to the tracked ledger** — the job writes to a throwaway checkout. For a durable M2,
-either add a commit-back job on `main` or backfill periodically from the Actions API.
+CI records its own row automatically, but that row writes to a throwaway checkout — it reaches the
+uploaded artifact and never the tracked ledger. Worse, a job that never _starts_ records nothing at
+all, because the recorder is itself a step. Backfill from the Actions API is the durable path and the
+only thing that sees those runs:
+
+```bash
+npm run evidence:backfill -- --limit 100
+```
+
+Add `--dry-run` to preview. It is idempotent — re-running over an overlapping window skips rows
+already present. A run whose jobs executed zero steps is classified `ENV`, so an outage or a billing
+lock is never counted as a test failure.
 
 These three ledgers are tracked in git. They are the durable record; run outputs are not.
 
