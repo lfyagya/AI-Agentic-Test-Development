@@ -5,6 +5,7 @@ CLAUDE.md
 README.md
 
 # Fully generated projections
+harness.config.json
 .claude/agents/
 .claude/settings.json
 .github/agents/

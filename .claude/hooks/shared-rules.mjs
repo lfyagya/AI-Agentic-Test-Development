@@ -6,7 +6,40 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const TARGET_FILE_RE = /cypress[\\/].*\.(cy\.js|commands\.js|js)$/i;
+// Every rule matches on extension, so the extension list lives here once. A TypeScript spec that
+// slips past this list silently loses every block-severity rule — identical code, zero violations —
+// which is worse than TypeScript being unsupported, because it looks like it works.
+const SCRIPT_EXT = String.raw`(?:m|c)?[jt]s`; // js, mjs, cjs, ts, mts, cts
+const SPEC_RE = new RegExp(String.raw`\.cy\.${SCRIPT_EXT}$`, "i");
+const COMMANDS_RE = new RegExp(String.raw`\.commands\.${SCRIPT_EXT}$`, "i");
+const ACTIONS_RE = new RegExp(String.raw`\.actions\.${SCRIPT_EXT}$`, "i");
+const SPEC_OR_COMMANDS_RE = new RegExp(
+  String.raw`\.(?:cy|commands)\.${SCRIPT_EXT}$`,
+  "i",
+);
+const TESTS_SPEC_RE = new RegExp(
+  String.raw`cypress[\\/]tests[\\/].*\.cy\.${SCRIPT_EXT}$`,
+  "i",
+);
+const SMOKE_SPEC_RE = new RegExp(
+  String.raw`cypress[\\/]tests[\\/].*[\\/]smoke[\\/].*\.cy\.${SCRIPT_EXT}$`,
+  "i",
+);
+const TARGET_FILE_RE = new RegExp(
+  String.raw`cypress[\\/].*\.${SCRIPT_EXT}$`,
+  "i",
+);
+
+export const EXTENSION_PATTERNS = {
+  SCRIPT_EXT,
+  SPEC_RE,
+  COMMANDS_RE,
+  ACTIONS_RE,
+  SPEC_OR_COMMANDS_RE,
+  TESTS_SPEC_RE,
+  SMOKE_SPEC_RE,
+  TARGET_FILE_RE,
+};
 
 export function toPosix(p) {
   return p.replaceAll("\\", "/");
@@ -153,7 +186,7 @@ export function scanContent(filePath, content, allowlist, repoRoot) {
 
   // Rule 2: No action classes or page-object wrappers.
   if (
-    /\.actions\.js$/i.test(normalized) ||
+    ACTIONS_RE.test(normalized) ||
     /(^|\/)(page-objects?|pageobjects?)(\/|$)/i.test(normalized) ||
     /\bclass\s+\w*(?:Page|Actions)\b/.test(content)
   ) {
@@ -170,7 +203,7 @@ export function scanContent(filePath, content, allowlist, repoRoot) {
     violations,
     normalized,
     content,
-    /from\s+['"][^'"]*\.actions\.js['"]/g,
+    new RegExp(String.raw`from\s+['"][^'"]*\.actions\.${SCRIPT_EXT}['"]`, "g"),
     message(
       "no-page-object",
       "Action class import detected. Command-first architecture forbids *.actions.js dependencies.",
@@ -188,7 +221,7 @@ export function scanContent(filePath, content, allowlist, repoRoot) {
   );
 
   // Rule 3: No hardcoded selectors in spec/command files.
-  if (/\.(cy\.js|commands\.js)$/i.test(normalized)) {
+  if (SPEC_OR_COMMANDS_RE.test(normalized)) {
     scanForRegex(
       violations,
       normalized,
@@ -206,7 +239,7 @@ export function scanContent(filePath, content, allowlist, repoRoot) {
   }
 
   // Rule 4: No hardcoded routes in cy.visit (except allowlisted root).
-  if (/\.(cy\.js|commands\.js)$/i.test(normalized)) {
+  if (SPEC_OR_COMMANDS_RE.test(normalized)) {
     scanForRegex(
       violations,
       normalized,
@@ -227,7 +260,7 @@ export function scanContent(filePath, content, allowlist, repoRoot) {
 
   // Rule 5: Auth-required specs must call cy.ensureAuthenticated().
   // Bypass with pragma: // @no-ensureAuthenticated (for modules with their own auth command)
-  if (/cypress[\\/]tests[\\/].*\.cy\.js$/i.test(normalized)) {
+  if (TESTS_SPEC_RE.test(normalized)) {
     const requiresAuth = !/unauth|public|health/i.test(normalized);
     const hasPragma = /\/\/\s*@no-ensureAuthenticated/.test(content);
     if (
@@ -261,7 +294,7 @@ export function scanContent(filePath, content, allowlist, repoRoot) {
   );
 
   // Rule 7: Smoke tests must be read-only.
-  if (/cypress[\\/]tests[\\/].*[\\/]smoke[\\/].*\.cy\.js$/i.test(normalized)) {
+  if (SMOKE_SPEC_RE.test(normalized)) {
     scanForRegex(
       violations,
       normalized,

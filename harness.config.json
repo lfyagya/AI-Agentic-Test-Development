@@ -1,33 +1,32 @@
 {
-  "$comment": "THE source of truth for this repo's harness. Policy lives here once; enabled AI adapters are generated projections, never requirements. Change policy or adapter selection here, then run `npm run harness:sync`. Hook scripts stay executable engine code.",
+  "$comment": "GENERATED from docs/harness/profiles by compose-harness-config.mjs. Policy lives in the adapter baseline (cypress.json); project facts live in the profile (cypress-boilerplate). Re-compose after editing either, then run npm run harness:sync.",
   "version": 1,
   "framework": "cypress",
   "adapters": {
-    "claude": { "enabled": true },
-    "copilot": { "enabled": true }
+    "claude": {
+      "enabled": true
+    },
+    "copilot": {
+      "enabled": true
+    }
   },
-
   "project": {
     "name": "cypress-automation-boilerplate",
     "architecture": "Config → Commands → Tests",
     "testRoot": "cypress",
     "configRoot": "cypress/configs",
     "commandRoot": "cypress/support/commands",
-    "specGlob": "cypress/tests/**/*.cy.js"
+    "specGlob": "cypress/tests/**/*.cy.{js,ts}"
   },
-
   "context": {
     "effortLevel": "high",
     "alwaysThinkingEnabled": true,
     "autoMemoryEnabled": true
   },
-
   "loops": {
     "gateRepairLimit": 3
   },
-
   "qaFoundations": "harness/qa-automation-foundations.md",
-
   "rules": [
     {
       "id": "no-hard-wait",
@@ -111,14 +110,20 @@
       "message": "Spec must carry exactly one known requirement id in its title and tags."
     }
   ],
-
   "agents": [
     {
       "name": "project-bootstrapper",
       "role": "GATHER",
       "description": "Derive an approved project and application contract from verified sources before any test generation.",
       "model": "sonnet",
-      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "Bash"],
+      "tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Grep",
+        "Glob",
+        "Bash"
+      ],
       "when": "Start a new project or module from no existing automation context"
     },
     {
@@ -126,7 +131,14 @@
       "role": "DISCOVER",
       "description": "Capture verified selectors, routes, and flow steps from the running application into config constants.",
       "model": "sonnet",
-      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "Bash"],
+      "tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Grep",
+        "Glob",
+        "Bash"
+      ],
       "when": "Observe an unknown module and turn what you see into config constants"
     },
     {
@@ -134,7 +146,14 @@
       "role": "BUILD",
       "description": "Turns a requirement into a merge-ready Cypress module — UI config, routes, API config, commands, registration, and the spec.",
       "model": "sonnet",
-      "tools": ["Read", "Write", "Edit", "Grep", "Glob", "Bash"],
+      "tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Grep",
+        "Glob",
+        "Bash"
+      ],
       "when": "Build a module from a requirement id — config → commands → spec"
     },
     {
@@ -142,7 +161,13 @@
       "role": "DIAGNOSE",
       "description": "Debug a failing smoke test, trace root cause, and propose an exact compliant fix.",
       "model": "opus",
-      "tools": ["Read", "Grep", "Glob", "Bash", "Edit"],
+      "tools": [
+        "Read",
+        "Grep",
+        "Glob",
+        "Bash",
+        "Edit"
+      ],
       "when": "Debugging a failing test locally"
     },
     {
@@ -151,7 +176,11 @@
       "description": "Evaluate supplied change and command evidence through the 6-phase QA gate and return PASS, PASS_WITH_ACTIONS, or BLOCK.",
       "model": "opus",
       "permissionMode": "plan",
-      "tools": ["Read", "Grep", "Glob"],
+      "tools": [
+        "Read",
+        "Grep",
+        "Glob"
+      ],
       "when": "Evaluate supplied diff and verification evidence — PASS / PASS_WITH_ACTIONS / BLOCK",
       "readOnlyRationale": "Read/search only by design: the gate cannot edit files or execute shell commands, so the builder never grades its own output."
     },
@@ -160,7 +189,12 @@
       "role": "SHIP",
       "description": "Create a pull request with the repository's standard generated description.",
       "model": "sonnet",
-      "tools": ["Read", "Grep", "Glob", "Bash"],
+      "tools": [
+        "Read",
+        "Grep",
+        "Glob",
+        "Bash"
+      ],
       "when": "Opening a pull request with a generated description"
     },
     {
@@ -168,18 +202,30 @@
       "role": "MAINTAIN",
       "description": "Simplify repository workflow scripts, agents, and docs without duplicating ownership.",
       "model": "sonnet",
-      "tools": ["Read", "Grep", "Glob", "Bash", "Edit"],
+      "tools": [
+        "Read",
+        "Grep",
+        "Glob",
+        "Bash",
+        "Edit"
+      ],
       "when": "Simplify workflow scripts, agents, or docs"
     }
   ],
-
   "hooks": {
-    "prompt": ["prompt-duplication-guard.mjs"],
-    "preWrite": ["pre-validate-cypress-rules.mjs"],
-    "postWrite": ["validate-cypress-rules.mjs"],
-    "stop": ["session-end-reminder.mjs"]
+    "prompt": [
+      "prompt-duplication-guard.mjs"
+    ],
+    "preWrite": [
+      "pre-validate-cypress-rules.mjs"
+    ],
+    "postWrite": [
+      "validate-cypress-rules.mjs"
+    ],
+    "stop": [
+      "session-end-reminder.mjs"
+    ]
   },
-
   "permissions": {
     "defaultMode": "plan",
     "allow": [
@@ -192,6 +238,8 @@
       "Bash(grep -r* cypress/*)",
       "Bash(find cypress/*)"
     ],
-    "deny": ["WebSearch"]
+    "deny": [
+      "WebSearch"
+    ]
   }
 }

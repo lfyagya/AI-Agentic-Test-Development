@@ -7,7 +7,7 @@
     "testRoot": "cypress",
     "configRoot": "cypress/configs",
     "commandRoot": "cypress/support/commands",
-    "specGlob": "cypress/tests/**/*.cy.js"
+    "specGlob": "cypress/tests/**/*.cy.{js,ts}"
   },
   "defaults": {
     "adapters": {

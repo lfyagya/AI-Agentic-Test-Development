@@ -1,0 +1,59 @@
+{
+  "//": [
+    "TypeScript is opt-in per file. The framework layer stays JavaScript, and a team can write new",
+    "specs, commands, or configs in .ts without converting anything — allowJs keeps both in one",
+    "program. Run `npm run typecheck`.",
+    "",
+    "strict is on deliberately: a suite that permits `any` gives up the checking TypeScript was",
+    "adopted for, and the framework rules already forbid the shortcuts that make strict painful.",
+    "",
+    "checkJs stays off so adopting TypeScript does not begin with hundreds of pre-existing errors",
+    "in .js code nobody is changing. Turn it on per-file with // @ts-check when you are ready.",
+    "",
+    "Comments cannot live inside compilerOptions — tsc rejects unknown options there."
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@configs/*": ["cypress/configs/*"],
+      "@support/*": ["cypress/support/*"],
+      "@fixtures/*": ["cypress/fixtures/*"],
+      "@tests/*": ["cypress/tests/*"],
+      "@schemas/*": ["cypress/schemas/*"],
+      "@core/*": ["cypress/support/core/*"]
+    },
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2020", "DOM"],
+    "types": ["cypress", "node"],
+
+    "strict": true,
+    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "allowJs": true,
+    "checkJs": false,
+
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "cypress/**/*.ts",
+    "cypress/**/*.js",
+    "cypress/support/index.d.ts",
+    "cypress.config.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "cypress/videos",
+    "cypress/screenshots",
+    "cypress/downloads",
+    "cypress/reports",
+    "reports"
+  ]
+}

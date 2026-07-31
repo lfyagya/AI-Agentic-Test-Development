@@ -12,6 +12,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  EXTENSION_PATTERNS,
   extractToolChange,
   loadAllowlist,
   scanContent,
@@ -30,7 +31,13 @@ function walk(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) files.push(...walk(full));
-    else if (entry.isFile() && entry.name.endsWith(".js")) files.push(full);
+    // Must accept TypeScript too. Walking only .js meant a .cy.ts spec was never opened, so every
+    // rule silently passed on it — the CI rescan and --all sweep both went blind on a TS repo.
+    else if (
+      entry.isFile() &&
+      EXTENSION_PATTERNS.TARGET_FILE_RE.test(toPosix(full))
+    )
+      files.push(full);
   }
   return files;
 }

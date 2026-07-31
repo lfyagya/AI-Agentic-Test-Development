@@ -59,7 +59,7 @@ module.exports = defineConfig({
   },
 
   e2e: {
-    specPattern: "cypress/tests/**/*.cy.js",
+    specPattern: "cypress/tests/**/*.cy.{js,ts}",
     supportFile: "cypress/support/e2e.js",
     fixturesFolder: "cypress/fixtures",
     downloadsFolder: "cypress/downloads",

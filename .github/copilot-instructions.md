@@ -38,4 +38,4 @@ Read/search only by design: the gate cannot edit files or execute shell commands
 |---|---|
 | Config | `cypress/configs` |
 | Commands | `cypress/support/commands` |
-| Tests | `cypress/tests/**/*.cy.js` |
+| Tests | `cypress/tests/**/*.cy.{js,ts}` |

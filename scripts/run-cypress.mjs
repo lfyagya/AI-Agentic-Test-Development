@@ -10,7 +10,9 @@ export function findSpecs(root, scope) {
     fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
       const fullPath = path.join(directory, entry.name);
       if (entry.isDirectory()) return visit(fullPath);
-      if (!entry.name.endsWith(".cy.js")) return [];
+      // Accept TypeScript specs too. Matching only .cy.js meant a TS suite silently resolved to
+      // zero specs and reported "bootstrap state is valid" — a green run that tested nothing.
+      if (!/\.cy\.(?:m|c)?[jt]s$/i.test(entry.name)) return [];
       const segments = path.relative(testRoot, fullPath).split(path.sep);
       return scope === "all" || segments.includes(scope) ? [fullPath] : [];
     });
