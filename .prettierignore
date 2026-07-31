@@ -30,3 +30,4 @@ scripts/harness/sync.mjs
 scripts/harness/templates.mjs
 scripts/harness/test-agent-adapters.mjs
 scripts/harness/test-block-rules-enforced.mjs
+scripts/harness/test-config-paths-honest.mjs
