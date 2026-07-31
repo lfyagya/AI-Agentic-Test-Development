@@ -10,13 +10,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs, readJson } from "../../../scripts/lib/cli.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ADAPTERS = path.join(HERE, "..", "adapters");
-
-function readJson(file) {
-  return JSON.parse(fs.readFileSync(file, "utf8"));
-}
 
 // Which AI tools a team uses is a project fact, so it belongs at the top level of the profile beside
 // `owner` and `language` — not buried in `overrides`, which reads as "an exception to policy".
@@ -99,13 +96,6 @@ function diff(a, b, at = "", out = []) {
   }
   if (JSON.stringify(a) !== JSON.stringify(b)) out.push(at || "<root>");
   return out;
-}
-
-function parseArgs(tokens) {
-  const args = {};
-  for (let i = 0; i < tokens.length; i += 2)
-    args[tokens[i]?.replace(/^--/, "")] = tokens[i + 1];
-  return args;
 }
 
 const isMain =
