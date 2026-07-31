@@ -334,6 +334,7 @@ Start project intake for <project>.
 Application source: <repository path or URL>
 Requirement source: <tracker/specification/owner>
 Known environments: <dev/qa/staging/prod>
+AI tools the team will use: <claude | copilot | both>
 Do not generate tests. Record unknowns and stop for approval where safety or expected behavior is unclear.
 ```
 
@@ -345,6 +346,22 @@ or expected result. Every claim is source-linked; an unavailable fact is recorde
 filled in.
 
 Never put credentials, PII, payment data, or production records in these files.
+
+**Record the tool answer in the profile.** Which AI tools a team uses is a project fact, so it lives
+at the top level of `harness/profiles/projects/<key>.json`:
+
+```json
+"adapters": { "claude": { "enabled": true }, "copilot": { "enabled": false } }
+```
+
+Then `npm run harness:compose && npm run harness:sync`. Disabling an adapter **deletes its generated
+files** — a Claude-only team stops carrying `.github/agents/`, `copilot-instructions.md`, and
+`.github/hooks/harness.json` for a tool it never opens. At least one adapter must stay enabled;
+composing with none is refused, because it would emit a config whose rules reach no tool at all.
+
+Be clear-eyed about the trade: **only Claude Code can refuse a violating write.** Copilot receives the
+same rules as advisory text, so a Copilot-only team's real gate is `npm run verify` and the pre-push
+hook (§4).
 
 Do not proceed until the owner approves environment mutation rules, authentication, selector strategy,
 synthetic data creation and cleanup, and at least one module contract.

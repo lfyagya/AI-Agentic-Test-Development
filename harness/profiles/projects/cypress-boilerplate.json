@@ -6,5 +6,13 @@
   "adapter": "cypress",
   "language": "javascript",
   "projectName": "cypress-automation-boilerplate",
-  "repo": "cypress-automation-boilerplate"
+  "repo": "cypress-automation-boilerplate",
+  "adapters": {
+    "claude": {
+      "enabled": true
+    },
+    "copilot": {
+      "enabled": true
+    }
+  }
 }

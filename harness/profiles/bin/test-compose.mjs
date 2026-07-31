@@ -90,6 +90,46 @@ assert.equal(
   "override clobbered sibling defaults",
 );
 
+// Which AI tools are enabled is a top-level project fact; overrides.adapters still works.
+const topLevel = compose({
+  key: "t",
+  adapter,
+  projectName: "t",
+  adapters: { claude: { enabled: true }, copilot: { enabled: false } },
+});
+assert.equal(
+  topLevel.adapters.copilot.enabled,
+  false,
+  "top-level adapters ignored",
+);
+const viaOverride = compose({
+  key: "t",
+  adapter,
+  projectName: "t",
+  overrides: {
+    adapters: { claude: { enabled: false }, copilot: { enabled: true } },
+  },
+});
+assert.equal(
+  viaOverride.adapters.claude.enabled,
+  false,
+  "overrides.adapters no longer honoured",
+);
+
+// Enabling no adapter composes a harness whose rules reach no tool at all. Refuse it at the point
+// of creation rather than emitting a config that looks complete and enforces nothing.
+assert.throws(
+  () =>
+    compose({
+      key: "t",
+      adapter,
+      projectName: "t",
+      adapters: { claude: { enabled: false }, copilot: { enabled: false } },
+    }),
+  /enables no AI adapter/,
+  "a profile with every adapter disabled must be refused",
+);
+
 // A profile missing required facts fails loudly rather than emitting a broken config.
 assert.throws(() => compose({ key: "x", adapter }), /projectName/);
 assert.throws(() => compose({ key: "x", projectName: "y" }), /adapter/);

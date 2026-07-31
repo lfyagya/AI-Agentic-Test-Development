@@ -11,6 +11,12 @@
   "projectName": "<name written into harness.config.json project.name>",
   "repo": "<path or URL of the repo this composes into>",
 
+  "$adapters": "ASK THE TEAM. Which AI coding tools will actually be used here? Disabling one removes its generated files on the next sync, so a Claude-only team stops carrying Copilot files it never opens. At least one must stay enabled. Note that only Claude Code can refuse a write: Copilot receives the same rules as advisory text, so a Copilot-only team relies on `npm run verify` and the pre-push hook as its real gate.",
+  "adapters": {
+    "claude": { "enabled": true },
+    "copilot": { "enabled": true }
+  },
+
   "$overrides": "Optional. Omit the whole block to take adapter defaults. Only add a key here when this project genuinely differs — an override you did not need is config that will drift.",
   "overrides": {
     "$context": "Model effort and memory. Adapter default is high + alwaysThinking + autoMemory.",
@@ -21,12 +27,6 @@
     "$loops": "Bounded repair. Adapter default is gateRepairLimit 3.",
     "loops": {
       "gateRepairLimit": 3
-    },
-
-    "$adapters": "Which AI tools get generated projections. Disable one and its files are removed on the next sync.",
-    "adapters": {
-      "claude": { "enabled": true },
-      "copilot": { "enabled": true }
     }
   }
 }

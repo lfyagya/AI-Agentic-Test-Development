@@ -86,6 +86,30 @@ EVALUATE gate stays `permissionMode: plan` with no Write, Edit, or Bash**. If an
 the gate write access, the builder could grade its own output and the harness would be theatre. That
 assertion is the guard.
 
+## Which AI tools a project uses
+
+`adapters` is a **top-level profile field**, not an override — which tools a team uses is a project
+fact, like `owner` and `language`:
+
+```json
+"adapters": { "claude": { "enabled": true }, "copilot": { "enabled": false } }
+```
+
+Compose and sync, and the disabled adapter's generated files are **removed**: a Claude-only team stops
+carrying `.github/agents/`, `.github/copilot-instructions.md`, and `.github/hooks/harness.json`.
+`overrides.adapters` still works for older profiles.
+
+Both stay enabled when the answer is unknown — silence should degrade to everything wired, never to
+nothing enforced. Composing with **no** adapter enabled is refused outright: it would emit a config
+whose rules are all declared and reach no tool.
+
+Ask the team; do not detect. What is installed on one machine is not what the team uses, and the guess
+breaks the moment someone joins with a different tool. The question belongs in intake — see
+`docs/START-HERE.md` step 1.
+
+**Only Claude Code can refuse a violating write.** Copilot gets the same rules as advisory text, so a
+Copilot-only team's real gate is `npm run verify` and the pre-push hook.
+
 ## Changing policy
 
 Edit `adapters/cypress.json`, then:

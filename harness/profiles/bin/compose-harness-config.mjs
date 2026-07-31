@@ -18,6 +18,24 @@ function readJson(file) {
   return JSON.parse(fs.readFileSync(file, "utf8"));
 }
 
+// Which AI tools a team uses is a project fact, so it belongs at the top level of the profile beside
+// `owner` and `language` — not buried in `overrides`, which reads as "an exception to policy".
+// `overrides.adapters` is still honoured so existing profiles keep working.
+function resolveAdapters(profile, base) {
+  const resolved =
+    profile.adapters ?? profile.overrides?.adapters ?? base.defaults.adapters;
+  const enabled = Object.entries(resolved).filter(([, v]) => v?.enabled);
+  if (enabled.length === 0) {
+    throw new Error(
+      `profile "${profile.key}" enables no AI adapter. That composes a harness with no agents, ` +
+        `no generated instructions, and no write-time hooks wired to any tool — every rule would ` +
+        `still be declared and none would reach anything. Enable at least one of: ` +
+        `${Object.keys(resolved).join(", ")}.`,
+    );
+  }
+  return resolved;
+}
+
 export function compose(profile, adaptersDir = ADAPTERS) {
   if (!profile.adapter) throw new Error("profile.adapter is required");
   const baselineFile = path.join(adaptersDir, `${profile.adapter}.json`);
@@ -41,7 +59,7 @@ export function compose(profile, adaptersDir = ADAPTERS) {
     ...(base.agentFileExtension
       ? { agentFileExtension: base.agentFileExtension }
       : {}),
-    adapters: over.adapters ?? base.defaults.adapters,
+    adapters: resolveAdapters(profile, base),
     project: {
       name: profile.projectName,
       architecture: base.architecture,

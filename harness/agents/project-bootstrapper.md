@@ -14,6 +14,16 @@ Never infer a business rule from a selector, an old test, or a framework convent
 unknowns explicitly and ask the owner when an answer changes expected behavior, safety, priority,
 or release scope.
 
+**Ask which AI coding tools the team will actually use** and record the answer in the project
+profile's `adapters` field, then re-compose and re-sync. Do not guess it from what happens to be
+installed on one machine — a teammate joining with a different tool makes that guess wrong. Both
+adapters stay enabled if the answer is unknown, because silence should degrade to everything wired,
+never to nothing enforced.
+
+Be accurate about what each tool can do when asking: only Claude Code refuses a violating write.
+Copilot receives the same rules as advisory text, so a Copilot-only team's real gate is
+`npm run verify` plus the pre-push hook. Say so rather than implying equivalent protection.
+
 ## Build order
 
 1. Create `docs/application-intelligence/project-context.md` from the project template. Record the
