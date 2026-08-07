@@ -27,7 +27,7 @@ flowchart TD
     B --> C{"Something\nalready exists?"}
     C -- Yes --> D["Reuse or extend\nthe existing file"]
     C -- No --> E["Follow the 6-step\nmodule checklist"]
-    D --> F["Write or update\nyour test (cypress-author skill)"]
+    D --> F["Write or update\nyour test (cypress-generator agent)"]
     E --> F
     F --> G["npm run cy:run:smoke\nVerify locally"]
     G --> H{Pass?}
@@ -91,10 +91,10 @@ NEVER  real credentials in code — use cypress.env.json locally, secrets in CI
 
 If you are forking this boilerplate and setting up CI for the first time, add these to **Repository Settings → Secrets and variables → Actions** for each environment (`dev`, `qa`, `prod`):
 
-| Secret | Value |
-| ------ | ----- |
-| `BASE_URL` | Your app URL |
-| `CYPRESS_USERNAME` | Test user login |
+| Secret             | Value              |
+| ------------------ | ------------------ |
+| `BASE_URL`         | Your app URL       |
+| `CYPRESS_USERNAME` | Test user login    |
 | `CYPRESS_PASSWORD` | Test user password |
 | `CYPRESS_AUTH_URL` | Auth endpoint path |
 
@@ -104,12 +104,11 @@ See [docs/guides/ci-cd-guide.md](docs/guides/ci-cd-guide.md) for full pipeline s
 
 ## Documentation
 
-| What you need | Where |
-| ------------- | ----- |
-| First time setup | [docs/onboarding/getting-started.md](docs/onboarding/getting-started.md) |
-| Joining an existing project | [docs/onboarding/joining-an-existing-project.md](docs/onboarding/joining-an-existing-project.md) |
-| Architecture rules and why | [docs/reference/framework-standards.md](docs/reference/framework-standards.md) |
-| Why configs/tests/commands are split | [docs/reference/test-organization.md](docs/reference/test-organization.md) |
-| Adding or updating modules | [docs/guides/framework-maintenance-guide.md](docs/guides/framework-maintenance-guide.md) |
-| Writing commands | [docs/guides/support-commands-instructions.md](docs/guides/support-commands-instructions.md) |
-| API intercepts | [docs/reference/api-layer-guide.md](docs/reference/api-layer-guide.md) |
+| What you need                             | Where                                                                                        |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------- |
+| First time setup, and the whole lifecycle | [docs/START-HERE.md](docs/START-HERE.md)                                                     |
+| Architecture rules and why                | [docs/reference/framework-standards.md](docs/reference/framework-standards.md)               |
+| Why configs/tests/commands are split      | [docs/reference/test-organization.md](docs/reference/test-organization.md)                   |
+| Adding or updating modules                | [docs/guides/framework-maintenance-guide.md](docs/guides/framework-maintenance-guide.md)     |
+| Writing commands                          | [docs/guides/support-commands-instructions.md](docs/guides/support-commands-instructions.md) |
+| API intercepts                            | [docs/reference/api-layer-guide.md](docs/reference/api-layer-guide.md)                       |

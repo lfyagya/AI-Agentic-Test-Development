@@ -1,7 +1,7 @@
 const { defineConfig } = require("cypress");
 const fs = require("node:fs");
 const path = require("node:path");
-const cypressGrepPlugin = require("@cypress/grep/src/plugin");
+const { plugin: cypressGrepPlugin } = require("@cypress/grep/plugin");
 const webpackPreprocessor = require("@cypress/webpack-preprocessor");
 const webpackConfig = require("./cypress/webpack.config.js");
 
@@ -26,6 +26,7 @@ function loadEnvConfig(configFile) {
 
 module.exports = defineConfig({
   // ── Global Config ──
+  allowCypressEnv: false,
   chromeWebSecurity: false,
   video: false,
   screenshotOnRunFailure: true,
@@ -42,6 +43,10 @@ module.exports = defineConfig({
   pageLoadTimeout: 30000,
 
   // ── Reporter ──
+  // saveJson writes cypress/reports/html/index.json alongside the HTML. The HTML is for
+  // humans; the JSON is the machine-readable run record that evidence and metrics are
+  // computed from. Without it there is no input to normalize and coverage cannot be
+  // measured. Passed through to mochawesome-report-generator, no extra dependency.
   reporter: "cypress-mochawesome-reporter",
   reporterOptions: {
     charts: true,
@@ -49,11 +54,12 @@ module.exports = defineConfig({
     embeddedScreenshots: true,
     inlineAssets: true,
     saveAllAttempts: false,
+    saveJson: true,
     reportDir: "cypress/reports/html",
   },
 
   e2e: {
-    specPattern: "cypress/tests/**/*.cy.js",
+    specPattern: "cypress/tests/**/*.cy.{js,ts}",
     supportFile: "cypress/support/e2e.js",
     fixturesFolder: "cypress/fixtures",
     downloadsFolder: "cypress/downloads",

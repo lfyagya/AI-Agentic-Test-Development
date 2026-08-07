@@ -34,6 +34,7 @@ Commands map to the GoF Command Pattern: each is a named, self-contained unit of
 ## Consequences
 
 **Easier:**
+
 - Selector changes: update one constant in `configs/ui/`, all tests update automatically.
 - Flow changes: fix one command, not every test that calls it.
 - Onboarding: new engineers write tests by calling `cy.*` commands — no class instantiation, no inheritance to understand.
@@ -41,6 +42,7 @@ Commands map to the GoF Command Pattern: each is a named, self-contained unit of
 - AI-assisted authoring: LLMs generate command-first code reliably because the pattern is uniform — no inheritance trees to navigate.
 
 **Harder:**
+
 - Teams coming from POM need a mental shift: commands are not methods on an object, and there is no object to hold state between calls.
 - The global `cy.*` namespace requires disciplined naming. Conflicts are caught by hooks but prevented by convention (`cy.visitPayments()` not `cy.visit()`).
 - IDE autocomplete for custom `cy.*` commands requires TypeScript declarations or JSDoc — not generated automatically.

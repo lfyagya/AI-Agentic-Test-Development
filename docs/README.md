@@ -1,59 +1,42 @@
 # Documentation
 
-Find what you need by role, not by guessing file names.
+**Start with [START-HERE.md](START-HERE.md)** — the complete, self-contained harness guide.
+Everything below is supporting detail you reach for only when you need it.
 
-| I am...                                                                    | Start here                                                                             |
-| -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| New to this project — first time setup                                     | [onboarding/getting-started.md](onboarding/getting-started.md)                         |
-| Joining a team already using this framework                                | [onboarding/joining-an-existing-project.md](onboarding/joining-an-existing-project.md) |
-| Writing a test or command right now                                        | [guides/support-commands-instructions.md](guides/support-commands-instructions.md)     |
-| Adding a module, endpoint, or selector                                     | [guides/framework-maintenance-guide.md](guides/framework-maintenance-guide.md)         |
-| Understanding hooks — what they are, why they exist, when they don't apply | [guides/hooks-explainer.md](guides/hooks-explainer.md)                                 |
-| Looking up a rule, standard, or selector strategy                          | [reference/framework-standards.md](reference/framework-standards.md)                   |
-| Understanding why the architecture works this way                          | [reference/test-organization.md](reference/test-organization.md)                       |
-| Working with API intercepts or schema validation                           | [reference/api-layer-guide.md](reference/api-layer-guide.md)                           |
-| Understanding how humans and AI agents use this framework differently      | [reference/two-views.md](reference/two-views.md)                                       |
-| Understanding the hook/agent control plane, and what a bigger harness adds | [reference/harness-engineering.md](reference/harness-engineering.md)                   |
-| Asking why a past decision was made                                        | [decisions/](decisions/)                                                               |
+Taxonomy is identical in the Playwright adapter: `guides/` for how-to, `reference/` for lookup,
+`architecture/` for design and specs.
 
----
+## Reference
 
-## Folder Map
+| Topic                                       | Document                                                              |
+| ------------------------------------------- | --------------------------------------------------------------------- |
+| Framework standards                         | [framework-standards.md](reference/framework-standards.md)            |
+| Why configs, commands, and tests are split  | [test-organization.md](reference/test-organization.md)                |
+| API intercepts and the API config layer     | [api-layer-guide.md](reference/api-layer-guide.md)                    |
 
-```text
-docs/
-├── onboarding/    ← Read once, in order — setup and orientation
-├── guides/        ← Task-oriented — "how do I do X right now?"
-├── reference/     ← Look-up — rules, standards, command catalogue
-└── decisions/     ← ADRs — append-only record of architecture choices
-```
+## Architecture
 
-### onboarding/ — tutorials, read linearly
+| Topic                       | Document                                                            |
+| --------------------------- | ------------------------------------------------------------------- |
+| Harness lifecycle contract  | [harness-lifecycle-spec.md](architecture/harness-lifecycle-spec.md) |
 
-| File                                                                        | When to read it                                                   |
-| --------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| [getting-started.md](onboarding/getting-started.md)                         | First time — install, configure, run first test                   |
-| [joining-an-existing-project.md](onboarding/joining-an-existing-project.md) | Joining mid-project — orient, find commands, add without breaking |
+## Guides
 
-### guides/ — task-oriented how-to docs
+| Topic                                       | Document                                                                     |
+| ------------------------------------------- | ---------------------------------------------------------------------------- |
+| TypeScript — opt-in per file                | [typescript-guide.md](guides/typescript-guide.md)                            |
+| Write-time hooks: events, rules, allowlist  | [hooks-explainer.md](guides/hooks-explainer.md)                              |
+| Writing custom commands                     | [support-commands-instructions.md](guides/support-commands-instructions.md)  |
+| Adding or updating modules                  | [framework-maintenance-guide.md](guides/framework-maintenance-guide.md)     |
+| CI pipeline setup                           | [ci-cd-guide.md](guides/ci-cd-guide.md)                                     |
 
-| File                                                                        | When to read it                                                        |
-| --------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| [framework-maintenance-guide.md](guides/framework-maintenance-guide.md)     | Adding a module, endpoint, selector, or environment                    |
-| [support-commands-instructions.md](guides/support-commands-instructions.md) | Writing a new `cy.*` command — naming, structure, ownership            |
-| [hooks-explainer.md](guides/hooks-explainer.md)                             | What hooks are, why they exist, when each fires, when they don't apply |
-| [ci-cd-guide.md](guides/ci-cd-guide.md)                                     | Pipeline setup, secrets, reading results                               |
-| [prompting-guide.md](guides/prompting-guide.md)                             | How to prompt Claude Code and Copilot effectively                      |
+## Project intake
 
-### reference/ — look-up material, consult repeatedly
+Project and module context templates: [application-intelligence](application-intelligence/README.md).
 
-| File                                                       | When to read it                                                                         |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| [framework-standards.md](reference/framework-standards.md) | Architecture rules, naming conventions, selector strategy, tagging                      |
-| [api-layer-guide.md](reference/api-layer-guide.md)         | Every API command documented — `cy.apiIntercept`, `cy.apiWait`, `cy.apiStub`            |
-| [test-organization.md](reference/test-organization.md)     | Why configs/tests/commands are split this way — principles behind each decision         |
-| [two-views.md](reference/two-views.md)                     | Human engineer view and AI agentic view — testing strategy, architecture, agents, hooks |
+Application-specific context is created only after intake. The canonical requirement registry is
+`evidence/requirements.json`.
 
-### decisions/ — Architecture Decision Records
+## Decisions
 
-Append-only. One file per decision, numbered sequentially. See [decisions/README.md](decisions/README.md) for the format.
+An append-only log of significant technical decisions: [decisions](decisions/README.md).

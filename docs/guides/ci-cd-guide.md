@@ -30,10 +30,10 @@ flowchart TD
 
 Two workflows run in parallel on every PR:
 
-| Workflow | File | What it checks | Blocks merge? |
-| -------- | ---- | -------------- | ------------- |
-| Architecture Rules | `cypress-rules.yml` | Non-negotiable framework rules | Yes — BLOCK verdict |
-| Cypress Tests | `cypress.yml` — smoke job | Smoke suite against dev | Yes — tests must pass |
+| Workflow           | File                      | What it checks                 | Blocks merge?         |
+| ------------------ | ------------------------- | ------------------------------ | --------------------- |
+| Architecture Rules | `cypress-rules.yml`       | Non-negotiable framework rules | Yes — BLOCK verdict   |
+| Cypress Tests      | `cypress.yml` — smoke job | Smoke suite against dev        | Yes — tests must pass |
 
 On merge to main, the full E2E suite runs automatically.
 
@@ -43,13 +43,14 @@ On merge to main, the full E2E suite runs automatically.
 
 Set these in **Repository Settings → Secrets and variables → Actions**:
 
-| Secret name | What it is |
-| ----------- | ---------- |
-| `BASE_URL` | Target app URL for the environment |
-| `CYPRESS_USERNAME` | Test user login |
-| `CYPRESS_PASSWORD` | Test user password |
-| `CYPRESS_AUTH_URL` | Auth endpoint (e.g. `/api/auth/login`) |
-| `CYPRESS_RECORD_KEY` | Cypress Cloud record key (optional — enables recording) |
+| Secret name          | What it is                                                              |
+| -------------------- | ----------------------------------------------------------------------- |
+| `BASE_URL`           | Target app URL for the environment                                      |
+| `CYPRESS_USERNAME`   | Test user login                                                         |
+| `CYPRESS_PASSWORD`   | Test user password                                                      |
+| `CYPRESS_AUTH_URL`   | Auth endpoint (e.g. `/api/auth/login`)                                  |
+| `CYPRESS_PROJECT_ID` | Cypress Cloud project id (optional; required only for recording)        |
+| `CYPRESS_RECORD_KEY` | Cypress Cloud record key (optional secret; required only for recording) |
 
 Create one set of secrets per environment using **GitHub Environments** (Settings → Environments):
 
@@ -77,20 +78,31 @@ Prod environment only runs smoke — the E2E job is skipped automatically.
 ## Reading Test Results
 
 ### Artifacts
+
 Every run uploads artifacts (pass or fail). Find them in **Actions → [run] → Artifacts**:
 
-| Artifact | Contains | Retention |
-|----------|----------|-----------|
-| `smoke-report-{id}` | Mochawesome HTML report | 14 days |
-| `smoke-failure-artifacts-{id}` | Screenshots + videos | 7 days (failure only) |
-| `e2e-smoke-report-{id}` | Mochawesome HTML for smoke module | 14 days |
-| `e2e-e2e-report-{id}` | Mochawesome HTML for e2e module | 14 days |
+| Artifact                       | Contains                          | Retention             |
+| ------------------------------ | --------------------------------- | --------------------- |
+| `smoke-report-{id}`            | Mochawesome HTML report           | 14 days               |
+| `smoke-failure-artifacts-{id}` | Screenshots + videos              | 7 days (failure only) |
+| `e2e-smoke-report-{id}`        | Mochawesome HTML for smoke module | 14 days               |
+| `e2e-e2e-report-{id}`          | Mochawesome HTML for e2e module   | 14 days               |
 
 ### Reading a Mochawesome report
+
 Download the artifact, open `reports/index.html` in a browser. Failed tests show the error, the command that failed, and a screenshot if one was captured.
 
 ### Cypress Cloud (optional)
-If `CYPRESS_RECORD_KEY` is set, results are also recorded to Cypress Cloud for:
+
+Cypress Cloud is not required to run this boilerplate. `npm run cy:run` and the CI jobs run without
+contacting Cypress Cloud when the two Cloud secrets are absent.
+
+Recording activates only when both `CYPRESS_PROJECT_ID` and `CYPRESS_RECORD_KEY` are configured.
+The record key must remain an operating-system/CI secret; do not place it in `cypress.env.json`.
+For an explicit local or custom-CI recording, run `npm run cy:run:cloud`.
+
+Recorded runs provide:
+
 - Test replay with time-travel debugging
 - Flakiness detection across runs
 - Parallel run coordination
@@ -99,13 +111,13 @@ If `CYPRESS_RECORD_KEY` is set, results are also recorded to Cypress Cloud for:
 
 ## Environment → Branch Mapping
 
-| Branch / trigger | Environment | Scope |
-| ---------------- | ----------- | ----- |
-| Any PR | `dev` | Smoke |
-| Push to `main` | `qa` | Smoke + E2E |
-| Manual `prod` | `prod` | Smoke only |
-| Manual `dev` | `dev` | Selectable |
-| Manual `qa` | `qa` | Selectable |
+| Branch / trigger | Environment | Scope       |
+| ---------------- | ----------- | ----------- |
+| Any PR           | `dev`       | Smoke       |
+| Push to `main`   | `qa`        | Smoke + E2E |
+| Manual `prod`    | `prod`      | Smoke only  |
+| Manual `dev`     | `dev`       | Selectable  |
+| Manual `qa`      | `qa`        | Selectable  |
 
 ---
 
@@ -122,15 +134,16 @@ If `CYPRESS_RECORD_KEY` is set, results are also recorded to Cypress Cloud for:
 
 Tests can fail in CI and pass locally due to:
 
-| Cause | How to diagnose |
-| ----- | --------------- |
-| Wrong environment URL | Check `BASE_URL` secret matches the target env |
-| Missing secret | Check the workflow log for `undefined` or empty values in `cypress.env.json` |
-| Timing on slow CI | Check if `cy.apiWait()` is used — CI machines are slower than local |
-| Auth failure | Check `CYPRESS_AUTH_URL` and credential secrets are set for the correct environment |
-| Intercept fired before registration | Check command order: `cy.apiIntercept()` must be before `cy.visit()` |
+| Cause                               | How to diagnose                                                                     |
+| ----------------------------------- | ----------------------------------------------------------------------------------- |
+| Wrong environment URL               | Check `BASE_URL` secret matches the target env                                      |
+| Missing secret                      | Check the workflow log for `undefined` or empty values in `cypress.env.json`        |
+| Timing on slow CI                   | Check if `cy.apiWait()` is used — CI machines are slower than local                 |
+| Auth failure                        | Check `CYPRESS_AUTH_URL` and credential secrets are set for the correct environment |
+| Intercept fired before registration | Check command order: `cy.apiIntercept()` must be before `cy.visit()`                |
 
 Steps:
+
 1. Download the failure artifact — watch the video for visual context
 2. Check the screenshot for the exact DOM state at failure
 3. Run the spec locally against the same environment: `npm run cy:run -- --env configFile=qa --spec "path/to/spec"`
@@ -149,13 +162,13 @@ The GitHub Actions setup above covers most teams. If your infrastructure is AWS-
 
 Key differences from the GitHub Actions setup:
 
-| Concern | GitHub Actions | AWS CodeBuild |
-| ------- | -------------- | -------------- |
-| Secrets | GitHub Secrets per environment | AWS Secrets Manager |
-| Parallelism | Matrix strategy (separate runners) | Single instance, N worker processes |
-| Test results | HTML report artifact | Upload to your reporting tool of choice |
-| Notifications | GitHub PR status | Whatever your pipeline already uses |
-| Trigger | GitHub webhook | CodeBuild webhook or manual |
+| Concern       | GitHub Actions                     | AWS CodeBuild                           |
+| ------------- | ---------------------------------- | --------------------------------------- |
+| Secrets       | GitHub Secrets per environment     | AWS Secrets Manager                     |
+| Parallelism   | Matrix strategy (separate runners) | Single instance, N worker processes     |
+| Test results  | HTML report artifact               | Upload to your reporting tool of choice |
+| Notifications | GitHub PR status                   | Whatever your pipeline already uses     |
+| Trigger       | GitHub webhook                     | CodeBuild webhook or manual             |
 
 ---
 
@@ -166,6 +179,7 @@ The `cypress-rules.yml` workflow runs `validate-cypress-rules.mjs` — the same 
 If the hook blocks locally (e.g. you wrote `cy.wait(2000)`), the CI check will also block. You cannot bypass it with `--no-verify`.
 
 What it checks (same as the local hook):
+
 - No `cy.wait(number)` in any Cypress file
 - No hardcoded selectors in tests or commands
 - No hardcoded URLs in tests or commands

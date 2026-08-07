@@ -51,9 +51,9 @@ import { HTTP_STATUS } from "@core/api/status-codes.js";
 
 export const PAYMENTS_API = Object.freeze({
   LIST: Object.freeze({
-    method: "GET",           // HTTP method
-    endpoint: "**/api/payments**",  // glob pattern — ** matches any path segment
-    alias: "paymentsList",   // unique camelCase — used as @paymentsList in cy.apiWait
+    method: "GET", // HTTP method
+    endpoint: "**/api/payments**", // glob pattern — ** matches any path segment
+    alias: "paymentsList", // unique camelCase — used as @paymentsList in cy.apiWait
     expectedStatus: HTTP_STATUS.OK, // validated on wait
   }),
   CREATE: Object.freeze({
@@ -141,11 +141,13 @@ Makes a direct HTTP request. Use for test setup and teardown — creating seed d
 
 ```javascript
 // Create a payment record before the test
-cy.apiRequest({
-  method: "POST",
-  url: "/api/payments",
-  body: { amount: 100, currency: "USD" },
-  headers: { Authorization: `Bearer ${Cypress.env("apiToken")}` },
+cy.env(["apiToken"], { log: false }).then(({ apiToken }) => {
+  cy.apiRequest({
+    method: "POST",
+    url: "/api/payments",
+    body: { amount: 100, currency: "USD" },
+    headers: { Authorization: `Bearer ${apiToken}` },
+  });
 });
 ```
 
@@ -186,13 +188,13 @@ Schema validation catches API contract breaks early — before they silently cor
 
 ## Common Mistakes
 
-| Mistake | What happens | Fix |
-| ------- | ------------ | --- |
-| `cy.visit()` before `cy.apiIntercept()` | Intercept never fires, `cy.apiWait()` times out | Register intercept first, always |
-| Duplicate alias across modules | Second intercept silently overrides the first | Keep aliases unique — check all API configs before adding |
-| Using `cy.wait(2000)` instead of `cy.apiWait()` | Test is timing-dependent, fails on slow CI | Always use `cy.apiWait('@alias')` |
-| Calling `cy.apiIntercept()` directly in a spec | Ownership leak — specs should not know about intercepts | Move to the module's `intercept*` command |
-| Glob pattern too broad (e.g. `**`) | Intercept matches unintended requests | Use specific patterns: `**/api/payments**` |
+| Mistake                                         | What happens                                            | Fix                                                       |
+| ----------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------- |
+| `cy.visit()` before `cy.apiIntercept()`         | Intercept never fires, `cy.apiWait()` times out         | Register intercept first, always                          |
+| Duplicate alias across modules                  | Second intercept silently overrides the first           | Keep aliases unique — check all API configs before adding |
+| Using `cy.wait(2000)` instead of `cy.apiWait()` | Test is timing-dependent, fails on slow CI              | Always use `cy.apiWait('@alias')`                         |
+| Calling `cy.apiIntercept()` directly in a spec  | Ownership leak — specs should not know about intercepts | Move to the module's `intercept*` command                 |
+| Glob pattern too broad (e.g. `**`)              | Intercept matches unintended requests                   | Use specific patterns: `**/api/payments**`                |
 
 ---
 
@@ -200,10 +202,10 @@ Schema validation catches API contract breaks early — before they silently cor
 
 The framework ships with three path aliases for clean imports:
 
-| Alias | Resolves to |
-| ----- | ----------- |
-| `@configs` | `cypress/configs/` |
-| `@support` | `cypress/support/` |
+| Alias       | Resolves to         |
+| ----------- | ------------------- |
+| `@configs`  | `cypress/configs/`  |
+| `@support`  | `cypress/support/`  |
 | `@fixtures` | `cypress/fixtures/` |
 
 ```javascript

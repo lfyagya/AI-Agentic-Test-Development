@@ -1,43 +1,22 @@
 name: Cypress Tests
 
-# ─────────────────────────────────────────────────────────────────────────────
-# When this runs:
-#   pull_request  → smoke tests only  (fast feedback on every PR)
-#   push to main  → smoke + full E2E  (full gate on merge)
-#   workflow_dispatch → manual run with environment selector
-#
-# Environment matrix:
-#   PR            → configFile=dev   (smoke only)
-#   merge to main → configFile=qa    (smoke + e2e)
-#   manual        → configFile=<selected>
-#
-# Adapting to another CI provider (CodeBuild, CircleCI, Jenkins, etc.):
-#   Mirror the same steps — install, write cypress.env.json from secrets, run
-#   the npm script, upload artifacts on failure. Add parallel execution,
-#   Cypress Cloud recording, or report merging as your suite grows.
-# ─────────────────────────────────────────────────────────────────────────────
-
 on:
   pull_request:
     branches: [main, develop]
-    paths:
-      - "cypress/**"
-      - "package.json"
-      - "cypress.config.js"
   push:
     branches: [main]
   workflow_dispatch:
     inputs:
       environment:
-        description: "Target environment"
+        description: Target environment
         required: true
-        default: "dev"
+        default: dev
         type: choice
         options: [dev, qa, prod]
       test_scope:
-        description: "Test scope"
+        description: Test scope
         required: true
-        default: "smoke"
+        default: smoke
         type: choice
         options: [smoke, e2e, all]
 
@@ -45,128 +24,125 @@ env:
   NODE_VERSION: "20"
 
 jobs:
-  # ── Job 1: Smoke tests — runs on every PR and every push ──────────────────
   smoke:
-    name: Smoke — ${{ github.event.inputs.environment || (github.event_name == 'push' && 'qa') || 'dev' }}
+    name: Smoke
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment || (github.event_name == 'push' && 'qa') || 'dev' }}
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Write cypress.env.json
-        # Reads from GitHub Secrets — set these in repo Settings > Secrets > Actions
-        # Secret names must match: BASE_URL, CYPRESS_USERNAME, CYPRESS_PASSWORD, CYPRESS_AUTH_URL
-        run: |
-          cat > cypress.env.json << EOF
-          {
-            "baseUrl": "${{ secrets.BASE_URL }}",
-            "username": "${{ secrets.CYPRESS_USERNAME }}",
-            "password": "${{ secrets.CYPRESS_PASSWORD }}",
-            "authUrl": "${{ secrets.CYPRESS_AUTH_URL }}"
-          }
-          EOF
-
-      - name: Run smoke tests
-        uses: cypress-io/github-action@v6
-        with:
-          command: npm run cy:run:smoke
+          cache: npm
+      - run: npm ci
+      - name: Write runtime configuration
         env:
-          CYPRESS_configFile: ${{ github.event.inputs.environment || (github.event_name == 'push' && 'qa') || 'dev' }}
-
-      - name: Upload artifacts on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: smoke-failure-artifacts-${{ github.run_id }}
-          path: |
-            cypress/screenshots/
-            cypress/videos/
-          retention-days: 7
-
-      - name: Upload HTML report
+          BASE_URL: ${{ secrets.BASE_URL }}
+          CYPRESS_USERNAME: ${{ secrets.CYPRESS_USERNAME }}
+          CYPRESS_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}
+          CYPRESS_AUTH_URL: ${{ secrets.CYPRESS_AUTH_URL }}
+        run: >-
+          node -e
+          "require('node:fs').writeFileSync('cypress.env.json',
+          JSON.stringify({baseUrl:process.env.BASE_URL,
+          username:process.env.CYPRESS_USERNAME,
+          password:process.env.CYPRESS_PASSWORD,
+          authUrl:process.env.CYPRESS_AUTH_URL}, null, 2))"
+      - name: Run smoke tests
+        id: smoke
+        run: npm run cy:run:smoke
+        env:
+          CYPRESS_configFile: ${{ inputs.environment || (github.event_name == 'push' && 'qa') || 'dev' }}
+          CYPRESS_PROJECT_ID: ${{ secrets.CYPRESS_PROJECT_ID }}
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+      # Feeds M2 (first-pass CI rate). Only attempt 1 counts, so a re-run does not launder a
+      # failure into a pass. Runs before evidence:build so M2 includes this run.
+      #
+      # Classifies from the TEST STEP's outcome, not job.status. job.status is 'failure' whenever
+      # anything in the job fails — npm ci, browser install, a dead runner — and recording those as
+      # test failures would depress M2 with infrastructure noise. If the tests never ran, the row is
+      # marked ENV and evidence.mjs excludes it.
+      #
+      # NOTE: this writes to the throwaway checkout. The row reaches the uploaded artifact but does
+      # NOT persist to the tracked evidence/ci-history.jsonl, and a job that never starts records
+      # nothing at all. Backfill from the Actions API is the only mechanism that sees both cases.
+      # See docs/START-HERE.md.
+      - name: Record CI outcome for M2
+        if: always() && job.status != 'cancelled'
+        env:
+          TEST_OUTCOME: ${{ steps.smoke.outcome }}
+          TRIGGER: ${{ github.event_name == 'pull_request' && 'pr' || (github.event_name == 'push' && 'push' || 'manual') }}
+        run: |
+          case "$TEST_OUTCOME" in
+            success) CLASS="" ; RESULT="passed" ;;
+            failure) CLASS="" ; RESULT="failed" ;;
+            *)       CLASS="--failure-class ENV" ; RESULT="failed" ;;
+          esac
+          node scripts/record-evidence.mjs ci \
+            --pipeline "${{ github.run_id }}" \
+            --trigger "$TRIGGER" \
+            --attempt "${{ github.run_attempt }}" \
+            --outcome "$RESULT" $CLASS
+      - name: Build machine evidence
+        if: always()
+        run: npm run evidence:build
+      - name: Upload reports and evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: smoke-report-${{ github.run_id }}
-          path: cypress/reports/html/
+          name: smoke-evidence-${{ github.run_id }}
+          if-no-files-found: warn
           retention-days: 14
+          path: |
+            cypress/reports/html/
+            cypress/screenshots/
+            evidence/
 
-  # ── Job 2: Full E2E — runs only on push to main ───────────────────────────
   e2e:
-    name: E2E — ${{ github.event.inputs.environment || 'qa' }}
+    name: E2E
     runs-on: ubuntu-latest
     needs: smoke
-    if: >
+    if: >-
       github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' &&
-       (github.event.inputs.test_scope == 'e2e' || github.event.inputs.test_scope == 'all'))
-    environment: ${{ github.event.inputs.environment || 'qa' }}
-
-    strategy:
-      # Run modules in parallel — add more matrix entries as your suite grows
-      # Each entry runs as a separate GitHub Actions runner in parallel
-      fail-fast: false
-      matrix:
-        module: [smoke, e2e]
-
+       inputs.environment != 'prod' &&
+       (inputs.test_scope == 'e2e' || inputs.test_scope == 'all'))
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Write cypress.env.json
-        run: |
-          cat > cypress.env.json << EOF
-          {
-            "baseUrl": "${{ secrets.BASE_URL }}",
-            "username": "${{ secrets.CYPRESS_USERNAME }}",
-            "password": "${{ secrets.CYPRESS_PASSWORD }}",
-            "authUrl": "${{ secrets.CYPRESS_AUTH_URL }}"
-          }
-          EOF
-
-      - name: Run ${{ matrix.module }} tests
-        uses: cypress-io/github-action@v6
-        with:
-          command: npx cypress run --spec "cypress/tests/**/${{ matrix.module }}/**/*.cy.js"
+          cache: npm
+      - run: npm ci
+      - name: Write runtime configuration
         env:
-          CYPRESS_configFile: ${{ github.event.inputs.environment || 'qa' }}
-          # Uncomment to enable Cypress Cloud recording:
-          # CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-
-      - name: Upload artifacts on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-${{ matrix.module }}-failure-${{ github.run_id }}
-          path: |
-            cypress/screenshots/
-            cypress/videos/
-          retention-days: 7
-
-      - name: Upload HTML report
+          BASE_URL: ${{ secrets.BASE_URL }}
+          CYPRESS_USERNAME: ${{ secrets.CYPRESS_USERNAME }}
+          CYPRESS_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}
+          CYPRESS_AUTH_URL: ${{ secrets.CYPRESS_AUTH_URL }}
+        run: >-
+          node -e
+          "require('node:fs').writeFileSync('cypress.env.json',
+          JSON.stringify({baseUrl:process.env.BASE_URL,
+          username:process.env.CYPRESS_USERNAME,
+          password:process.env.CYPRESS_PASSWORD,
+          authUrl:process.env.CYPRESS_AUTH_URL}, null, 2))"
+      - name: Run E2E tests
+        run: npm run cy:run:e2e
+        env:
+          CYPRESS_configFile: ${{ inputs.environment || 'qa' }}
+          CYPRESS_PROJECT_ID: ${{ secrets.CYPRESS_PROJECT_ID }}
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+      - name: Build machine evidence
+        if: always()
+        run: npm run evidence:build
+      - name: Upload reports and evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-${{ matrix.module }}-report-${{ github.run_id }}
-          path: cypress/reports/html/
+          name: e2e-evidence-${{ github.run_id }}
+          if-no-files-found: warn
           retention-days: 14
+          path: |
+            cypress/reports/html/
+            cypress/screenshots/
+            evidence/

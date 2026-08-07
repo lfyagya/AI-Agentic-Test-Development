@@ -1,0 +1,2 @@
+# Spec root — harness.config.json project.specGlob = cypress/tests/**/*.cy.js
+# Empty until a requirement is approved and the BUILD agent generates the first module.

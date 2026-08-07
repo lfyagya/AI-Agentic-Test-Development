@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "type": "command",
+        "command": "node .claude/hooks/pre-validate-cypress-rules.mjs",
+        "cwd": ".",
+        "timeoutSec": 30,
+        "env": {
+          "HARNESS_GENERATED_FROM": "harness.config.json"
+        }
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "type": "command",
+        "command": "node .claude/hooks/validate-cypress-rules.mjs",
+        "cwd": ".",
+        "timeoutSec": 30,
+        "env": {
+          "HARNESS_GENERATED_FROM": "harness.config.json"
+        }
+      }
+    ]
+  }
+}

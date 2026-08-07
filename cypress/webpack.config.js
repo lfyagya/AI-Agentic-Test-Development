@@ -17,16 +17,22 @@ module.exports = {
       "@fixtures": path.resolve(__dirname, "fixtures"),
       "@core": path.resolve(__dirname, "support/core"),
     },
-    extensions: [".js", ".jsx", ".json"],
+    // .ts must be resolvable, and must come before .js so a module with both prefers the typed one.
+    extensions: [".ts", ".js", ".jsx", ".json"],
   },
   module: {
     rules: [
       {
-        test: /\.js$/,
+        // TypeScript is opt-in per file: this rule compiles .js and .ts through the same loader, so
+        // a repo can hold both without converting anything. preset-typescript strips types without
+        // checking them — `npm run typecheck` is what verifies them.
+        test: /\.[jt]s$/,
         exclude: /node_modules/,
         use: {
           loader: "babel-loader",
-          options: { presets: ["@babel/preset-env"] },
+          options: {
+            presets: ["@babel/preset-env", "@babel/preset-typescript"],
+          },
         },
       },
       {

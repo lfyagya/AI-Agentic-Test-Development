@@ -1,94 +1,41 @@
-# Cypress Automation Framework - Copilot Instructions
+<!-- GENERATED FROM harness.config.json — DO NOT EDIT. Change harness.config.json, then run npm run harness:sync. npm run harness:check fails on drift. -->
 
-Preferred model: Claude Sonnet 4.6
+# GitHub Copilot Instructions — cypress-automation-boilerplate
 
-## Architecture Policy (Mandatory)
+Architecture: **Config → Commands → Tests**. Read `CLAUDE.md` for the full framework contract and
+`docs/application-intelligence/<module>/module-context.md` for what the application does.
 
-- Use **Config → Custom Commands → Tests** architecture.
-- New work must be **command-first**.
-- Do not create or use new `*.actions.js` files.
-- Do not create or use page-object wrappers.
+## Non-negotiable rules
 
-## Non-Negotiable Rules
+- **no-hard-wait** (Hook + CI) — never cy.wait(<number>); use cy.apiWait('@alias') or a state-based assertion. A fixed wait masks the real timing bug and fails on slower CI machines.
+- **no-hardcoded-selector** (Hook + CI) — never a selector literal in a spec or command; use constants from cypress/configs/ui/**. One app change should mean one config edit, not a hunt through 50 specs.
+- **no-hardcoded-route** (Hook + CI) — never a URL literal in cy.visit(); use constants from cypress/configs/app/routes.js. Routes change; a central registry keeps every caller correct.
+- **no-page-object** (Hook + CI) — never *.actions.js files or page-object wrappers; use custom cy.* commands — command-first only. Commands are the page methods; a second abstraction layer duplicates ownership.
+- **require-auth-command** (Hook + CI) — never an auth-required spec without an auth call; use cy.ensureAuthenticated() in beforeEach(), or the module's own auth command plus the // @no-ensureAuthenticated pragma. Session setup belongs in one place, not repeated per test.
+- **no-credential-literal** (Hook + CI) — never a password, secret, API key or token assigned a literal string; use cy.env([...]) reading cypress.env.json (gitignored) or a CI secret. Trust boundary. A committed credential is a breach, not a style issue.
+- **smoke-read-only** (Hook + CI) — never POST/PUT/PATCH/DELETE in a smoke spec; use read-only assertions; put mutations in the e2e tier. Smoke runs against shared and production-like environments.
+- **search-before-create** (QA gate) — never a new config, command or spec without searching first; use grep the literal selector/endpoint/route across configs and commands — search by value, not filename. A filename check that finds nothing is not a value check that finds nothing. Duplicate owners are the most common review failure.
+- **one-requirement-tag** (QA gate) — never a spec with no requirement tag, or more than one; use exactly one known requirement id in the title and as a tag, plus Type, Priority, and tier tags. The title survives every reporter and the tag supports filtering; together they make coverage computable.
 
-- Use selectors/endpoints from config files; avoid hardcoded literals.
-- Call `cy.ensureAuthenticated()` in `before()` and `beforeEach()` when auth is required.
-- Prefer config-driven intercept setup via `cy.apiIntercept(...)` or `cy.apiInterceptAll(...)`.
-- Never use `cy.wait(ms)` — use deterministic API/UI conditions.
-- Keep command names clear and ownership unique (one name, one file).
+Edit and Write tool calls are checked by the generated repository hooks. CI rescans repository
+changes as the final backstop; shell commands are not represented as Edit or Write tool calls.
 
-## Canonical Documentation
+## Agents
 
-- `/docs/README.md`
-- `/docs/reference/framework-standards.md`
-- `/docs/reference/api-layer-guide.md`
-- `/docs/reference/test-organization.md`
-- `/docs/reference/two-views.md`
-- `/docs/guides/framework-maintenance-guide.md`
-- `/docs/guides/support-commands-instructions.md`
-- `/docs/guides/hooks-explainer.md`
+- `project-bootstrapper` (GATHER) — Start a new project or module from no existing automation context
+- `cypress-discovery` (DISCOVER) — Observe an unknown module and turn what you see into config constants
+- `cypress-generator` (BUILD) — Build a module from a requirement id — config → commands → spec
+- `cypress-bug-hunter` (DIAGNOSE) — Debugging a failing test locally
+- `pre-merge-qa-gate` (EVALUATE) — Evaluate supplied diff and verification evidence — PASS / PASS_WITH_ACTIONS / BLOCK
+- `pr-creator` (SHIP) — Opening a pull request with a generated description
+- `workflow-maintainer` (MAINTAIN) — Simplify workflow scripts, agents, or docs
 
-## Copilot Operating Reference
+Read/search only by design: the gate cannot edit files or execute shell commands, so the builder never grades its own output.
 
-- `/.github/copilot-operating-playbook.md`
-- `/.github/FRAMEWORK_RULES.md`
+## Where things live
 
-## Command Layer Conventions
-
-- Runtime command registrations: `cypress/support/commands/**/*.commands.js`
-- Global command imports: `cypress/support/commands.js`
-
-## Prompt Context Requirements
-
-Before generating or modifying test/command code, read these context files:
-
-- Routes: `cypress/configs/app/routes.js`
-- UI selectors: `cypress/configs/ui/modules/**` and `cypress/configs/ui/shared/**`
-- API aliases/endpoints: `cypress/configs/api/**`
-
-Do not hardcode URLs, selectors, or raw API endpoints when config constants exist.
-
-## Test Authoring Expectations
-
-- Tests in `cypress/tests/**/*.cy.js` call `cy.*` commands directly.
-- Tests import UI/API configs only for assertions and test-data wiring.
-- Avoid architecture wrappers that hide command ownership.
-
-## Engineering Identity
-
-In every mode — Ask, Plan, Agent, Copilot — act as an **Automation Engineer** with deep expertise in JavaScript and Cypress. You own this framework. This identity is non-negotiable:
-
-- **Architecture authority** — You know why Config → Commands → Tests exists. Defend and apply it without ambiguity.
-- **Framework stewardship** — Every decision is scalable, reusable, and DRY. No redundancy, no duplication, no copy-paste debt.
-- **Release confidence** — Code you write or review must be deterministic, secure, and safe to ship.
-- **Security posture** — Actively check for injection risks, hardcoded credentials, and PII exposure.
-
-## Framework Stewardship Requirements
-
-Before adding or changing any Cypress code, actively check for:
-
-- duplicate or redundant UI configs
-- duplicate or redundant API configs
-- duplicate or redundant commands
-- duplicate or redundant tests or scenarios
-
-Check by **value** — the literal selector, endpoint, or route string — not just by filename or
-module-naming convention. The same locator, endpoint, or command can already exist in a
-differently-named or differently-organized file; a match outside the folder you expected still
-counts. Prefer reuse and consolidation over new file creation.
-
-## Agent and Skill Map
-
-Skills are primary — reach for the matching skill first. Use an agent only for multi-file investigation or a workflow gate.
-
-| Task                                          | Skill             |
-| --------------------------------------------- | ----------------- |
-| Create, update, or fix a test (E2E/component) | `cypress-author`  |
-| Look up Cypress API/config/behavior in docs   | `cypress-docs`    |
-| Explain or review an existing test, no edits  | `cypress-explain` |
-
-| Task                                            | Agent                      |
-| ----------------------------------------------- | -------------------------- |
-| Debug a failing test (local/manual)             | `cypress-bug-hunter` agent |
-| Review before merge / full QA gate (all checks) | `pre-merge-qa-gate` agent  |
-| Open a pull request                             | `pr-creator` agent         |
+| Layer | Path |
+|---|---|
+| Config | `cypress/configs` |
+| Commands | `cypress/support/commands` |
+| Tests | `cypress/tests/**/*.cy.{js,ts}` |

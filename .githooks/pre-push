@@ -1,0 +1,25 @@
+#!/bin/sh
+# Runs the same gates CI would, before anything leaves your machine.
+#
+# Enable once per clone:
+#   git config core.hooksPath .githooks
+#
+# This exists so a team with no CI budget gets identical enforcement at zero cost. GitHub Actions is
+# free and unlimited on public repos, but private repos draw on a metered monthly allowance, and the
+# harness must never require a paid service for its baseline.
+#
+# Skip deliberately for a work-in-progress push:
+#   SKIP_VERIFY=1 git push
+
+if [ "$SKIP_VERIFY" = "1" ]; then
+  echo "[pre-push] SKIP_VERIFY=1 — gates skipped. CI or a reviewer is now your only backstop."
+  exit 0
+fi
+
+echo "[pre-push] running npm run verify ..."
+if ! npm run --silent verify; then
+  echo ""
+  echo "[pre-push] BLOCKED — verify failed. Fix it, or push with SKIP_VERIFY=1 if you know why."
+  exit 1
+fi
+echo "[pre-push] all gates passed."
