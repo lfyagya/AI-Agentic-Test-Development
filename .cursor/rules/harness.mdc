@@ -22,8 +22,8 @@ Architecture: **Config → Commands → Tests**. Read `CLAUDE.md` for the full f
 - **search-before-create** (QA gate) — never a new config, command or spec without searching first; use grep the literal selector/endpoint/route across configs and commands — search by value, not filename. A filename check that finds nothing is not a value check that finds nothing. Duplicate owners are the most common review failure.
 - **one-requirement-tag** (QA gate) — never a spec with no requirement tag, or more than one; use exactly one known requirement id in the title and as a tag, plus Type, Priority, and tier tags. The title survives every reporter and the tag supports filtering; together they make coverage computable.
 
-Cursor applies these as guidance: it has no pre-edit hook, so it cannot refuse a violating write.
-The enforcing gate is `npm run verify` (local + pre-push) and CI — see
+`preToolUse` in `.cursor/hooks.json` refuses violating Write/StrReplace calls (exit code 2).
+Human edits and any miss still hit `npm run verify` / pre-push / CI — see
 `docs/architecture/cross-tool-configuration.md`.
 
 ## Agent roster

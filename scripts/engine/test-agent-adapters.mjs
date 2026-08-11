@@ -12,6 +12,7 @@ import {
   copilotHooks,
   copilotTools,
   cursorAgent,
+  cursorHooks,
   readConfig,
 } from "./templates.mjs";
 
@@ -120,6 +121,22 @@ assert.ok(
   hooks.hooks.userPromptSubmitted.every((hook) => hook.command.includes("prompt-duplication-guard")),
 );
 assert.ok(hooks.hooks.agentStop.every((hook) => hook.command.includes("session-end-reminder")));
+
+const cursor = cursorHooks(config);
+assert.equal(cursor.version, 1);
+assert.ok(
+  cursor.hooks.preToolUse?.every((hook) => hook.matcher === "Write|StrReplace"),
+  "Cursor preToolUse must match Write|StrReplace",
+);
+assert.ok(
+  cursor.hooks.preToolUse?.every((hook) =>
+    hook.command.includes("pre-validate-cypress-rules"),
+  ),
+  "Cursor preToolUse must run the pre-write validator",
+);
+assert.ok(cursor.hooks.afterFileEdit?.length >= 1, "Cursor afterFileEdit missing");
+assert.ok(cursor.hooks.beforeSubmitPrompt?.length >= 1, "Cursor beforeSubmitPrompt missing");
+assert.ok(cursor.hooks.stop?.length >= 1, "Cursor stop hook missing");
 
 assert.throws(
   () =>

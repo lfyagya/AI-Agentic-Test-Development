@@ -62,7 +62,9 @@ export function extractToolChange(
 
   const filePath =
     toolInput.file_path || toolInput.filePath || toolInput.path || "";
-  if (!filePath || !["Write", "Edit"].includes(toolName))
+  // Claude/Copilot: Write|Edit. Cursor: Write|StrReplace (and Edit aliases).
+  const writeTools = new Set(["Write", "Edit", "StrReplace"]);
+  if (!filePath || !writeTools.has(toolName))
     return { filePath: "", content: "" };
 
   const absolutePath = path.isAbsolute(filePath)

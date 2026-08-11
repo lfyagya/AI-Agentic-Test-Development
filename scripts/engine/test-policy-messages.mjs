@@ -26,6 +26,21 @@ assert.deepEqual(
   { filePath: "cypress/support/demo.js", content: "const ok = true;" },
 );
 
+assert.equal(
+  extractToolChange(
+    {
+      tool_name: "StrReplace",
+      tool_input: {
+        path: "cypress/support/demo.js",
+        old_string: "const ok = true;",
+        new_string: "const ok = false;",
+      },
+    },
+    root,
+  ).content,
+  "const ok = false;",
+);
+
 const violations = scanContent(
   "cypress/tests/cart/smoke/cart.cy.js",
   "const password = 'secret-value'; cy.wait(1);",

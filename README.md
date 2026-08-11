@@ -48,7 +48,22 @@ Continue with [From No Project to Test Metrics](docs/START-HERE.md).
 | DIAGNOSE | `cypress-bug-hunter` | Trace failures to root cause |
 | SHIP | `pr-creator` | Prepare the pull request |
 
-Claude and Copilot configurations are generated projections. Edit neutral sources, then run:
+## Cross-tool glance
+
+One harness policy projects to four tools. Full diagrams live in
+[cross-tool-configuration.md](docs/architecture/cross-tool-configuration.md).
+
+| Tool | Projection | Write-time gate |
+| --- | --- | --- |
+| Claude | `.claude/**`, `CLAUDE.md` | `PreToolUse` refuses Edit/Write |
+| Copilot | `.github/**`, instructions | `PreToolUse` denies (exit 2) |
+| Cursor | `.cursor/**` | `preToolUse` denies Write/StrReplace |
+| Codex | `AGENTS.md` | none — floor only |
+
+Shared skills land under `.claude/skills` and `.agents/skills`. Universal floor for every tool and
+human: `npm run verify` → pre-push → CI.
+
+Edit neutral sources (`harness.config.json`, `harness/**`, `.claude/hooks/**`), then:
 
 ```bash
 npm run harness:sync

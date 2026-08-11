@@ -1,10 +1,16 @@
 {
   "version": 1,
-  "_generated": "From harness.config.json by scripts/engine/sync.mjs. Advisory only — Cursor cannot refuse a write.",
+  "_generated": "From harness.config.json by scripts/engine/sync.mjs. preToolUse exit 2 refuses a violating write.",
   "hooks": {
     "beforeSubmitPrompt": [
       {
         "command": "node .claude/hooks/prompt-duplication-guard.mjs"
+      }
+    ],
+    "preToolUse": [
+      {
+        "command": "node .claude/hooks/pre-validate-cypress-rules.mjs",
+        "matcher": "Write|StrReplace"
       }
     ],
     "afterFileEdit": [

@@ -44,10 +44,11 @@ Legitimate exceptions (e.g. `cy.get('body')` for framework-level checks) are dec
 
 **Harder:**
 
-- Hooks only fire during Claude Code sessions. Human-authored code bypasses the pre-write hook entirely — CI is the only gate for those changes.
-- The hook system requires Node.js to be available in the environment where Claude Code runs.
+- Hooks only fire during supported AI-agent sessions (Claude / Copilot / Cursor PreToolUse).
+  Human-authored code bypasses the pre-write hook — CI is the gate for those changes.
+- The hook system requires Node.js where the agent runs.
 - Allowlist exceptions require discipline: every entry must be documented in the governance file or it will be removed at the next review.
-- Hooks are a Claude Code concept — they do not apply to GitHub Copilot sessions. Copilot enforcement is advisory, through generated instructions. Both read the same rules from one source; only the enforcement strength differs.
+- Codex has no hook API; its write-time path is guidance plus the universal floor.
 
 ## Update — 31 July 2026
 
@@ -61,7 +62,14 @@ and _generated_ into every adapter by `npm run harness:sync`. Consequently:
   [`docs/START-HERE.md`](../START-HERE.md) and the harness guide.
 - `npm run harness:check` fails the build if any projection drifts from the config.
 
-The original trade-off is unchanged: hooks are deterministic, instructions are advisory.
+The original trade-off is unchanged for humans and Codex: hooks are deterministic where the tool
+exposes PreToolUse; instructions alone remain advisory.
+
+## Update — 12 August 2026
+
+Official Copilot and Cursor hook docs now support denying tool calls before execution (`PreToolUse` /
+`preToolUse`, exit code 2). The harness projects the same pre-write scripts there. Codex remains
+floor-only. See [`cross-tool-configuration.md`](../architecture/cross-tool-configuration.md).
 
 ## What This Is Not
 
