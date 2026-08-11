@@ -137,8 +137,10 @@ The hook scanner targets `cypress/**/*.js` files only. Changes to `package.json`
 **3. Deliberate exceptions**
 Some literal values are legitimate (e.g. `cy.get('body')` for global page state checks). These are listed in `cypress-hook-allowlist.json`. If you get a false positive, add the value to the allowlist and document the reason in `cypress-hook-allowlist-governance.md`. Do not modify the rule itself.
 
-**4. Copilot (VS Code Copilot chat)**
-Hooks are a Claude Code concept (`.claude/settings.json`). GitHub Copilot has no equivalent write-time gate: it receives the same rules as advisory text through `.github/copilot-instructions.md`, which is generated from `harness.config.json`. Both adapters read one source; only Claude Code can refuse the write. For Copilot sessions, CI is the enforcing gate.
+**4. Copilot and Cursor (write-time)**
+The same pre-write script runs under Claude (`PreToolUse`), Copilot (`.github/hooks` `PreToolUse`,
+exit 2 denies), and Cursor (`.cursor/hooks.json` `preToolUse`, exit 2 denies). Codex has no hook
+API. Human edits and any missed hook still rely on `npm run verify` / pre-push / CI.
 
 **5. Framework-internal files**
 `cypress/support/core/api/` (the API engine) contains intentional technical patterns that may look like violations. These files are not test code — they are framework internals. The `TARGET_FILE_RE` regex in `shared-rules.mjs` is designed to exclude them, but if you modify core files, verify the scanner does not flag legitimate patterns.

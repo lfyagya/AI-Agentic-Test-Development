@@ -226,7 +226,7 @@ export function copilotHooks(config) {
   const h = config.hooks ?? {};
   const hooks = {};
   // Copilot event names: userPromptSubmitted / PreToolUse / PostToolUse / agentStop.
-  // Same scripts as Claude; Copilot hooks are advisory (they do not refuse a write).
+  // PascalCase PreToolUse uses Claude matcher semantics; exit code 2 denies the tool call.
   if (h.prompt?.length) {
     hooks.userPromptSubmitted = h.prompt.map((script) => copilotHook(script));
   }
@@ -331,9 +331,7 @@ ${whereThingsLive(config)}
 }
 
 // Cursor reads project rules from .cursor/rules/*.mdc. `alwaysApply: true` puts the harness contract
-// in every chat. Cursor has no pre-edit event, so it cannot refuse a write the way Claude's
-// PreToolUse hook does — the rules are guidance and the hard gate is `npm run verify` + CI. That is
-// stated in the body so no one mistakes an advisory rule for an enforced one.
+// in every chat. Write-time refusal is `.cursor/hooks.json` → preToolUse (same scripts as Claude).
 export function cursorRules(config) {
   const project = config.project;
   const frontmatter = [
@@ -353,8 +351,8 @@ Architecture: **${project.architecture}**. Read \`CLAUDE.md\` for the full frame
 
 ${ruleBullets(config)}
 
-Cursor applies these as guidance: it has no pre-edit hook, so it cannot refuse a violating write.
-The enforcing gate is \`npm run verify\` (local + pre-push) and CI — see
+\`preToolUse\` in \`.cursor/hooks.json\` refuses violating Write/StrReplace calls (exit code 2).
+Human edits and any miss still hit \`npm run verify\` / pre-push / CI — see
 \`docs/architecture/cross-tool-configuration.md\`.
 
 ## Agent roster
@@ -372,8 +370,8 @@ ${whereThingsLive(config)}
 
 export const cursorRulesText = (config) => cursorRules(config);
 
-// Codex reads AGENTS.md from the repo root before starting work. Codex has no hook system at all, so
-// like Cursor its enforcement is the universal floor, not a write-time block.
+// Codex reads AGENTS.md from the repo root before starting work. Codex has no hook system, so its
+// enforcement is the universal floor (verify + pre-push + CI), not a write-time block.
 export function codexInstructions(config) {
   const project = config.project;
   return `${generatedBanner()}
@@ -469,8 +467,7 @@ export function claudeAgent(agent, instructions) {
 }
 
 // Cursor subagents: .cursor/agents/*.md with name/description/model/readonly frontmatter.
-// EVALUATE is readonly so the gate cannot edit. Cursor still cannot refuse a write at PreToolUse —
-// that remains Claude-only; Cursor agents inherit the floor.
+// EVALUATE is readonly so the gate cannot edit. Write refusal is project preToolUse, not agent YAML.
 export function cursorAgent(agent, instructions) {
   const readOnly =
     agent.permissionMode === "plan" ||
@@ -503,13 +500,19 @@ export function copilotAgent(agent, instructions) {
   return `${frontmatter.join("\n")}\n\n${GENERATED_AGENT_MARKER}\n\n${instructions}\n`;
 }
 
-// Advisory only: Cursor has no pre-edit block. Prompt/stop/post-edit reuse the shared engine scripts.
+// Cursor: preToolUse exit 2 denies Write/StrReplace; afterFileEdit still runs post-write scan.
 export function cursorHooks(config) {
   const h = config.hooks ?? {};
   const hooks = {};
   if (h.prompt?.length) {
     hooks.beforeSubmitPrompt = h.prompt.map((script) => ({
       command: `node .claude/hooks/${script}`,
+    }));
+  }
+  if (h.preWrite?.length) {
+    hooks.preToolUse = h.preWrite.map((script) => ({
+      command: `node .claude/hooks/${script}`,
+      matcher: "Write|StrReplace",
     }));
   }
   if (h.postWrite?.length) {
@@ -525,7 +528,7 @@ export function cursorHooks(config) {
   return {
     version: 1,
     _generated:
-      "From harness.config.json by scripts/engine/sync.mjs. Advisory only — Cursor cannot refuse a write.",
+      "From harness.config.json by scripts/engine/sync.mjs. preToolUse exit 2 refuses a violating write.",
     hooks,
   };
 }

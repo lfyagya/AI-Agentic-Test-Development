@@ -15,7 +15,7 @@ Day-to-day workflow: [`../START-HERE.md`](../START-HERE.md).
 | **Skill** | Reusable Cypress expertise (how) |
 | **Agent** | Lifecycle role, permissions, model, inputs, outputs (when / why / constraints) |
 | **Rule** | Persistent project policy (never / instead) |
-| **Hook** | Deterministic write-time enforcement (Claude blocks; others advisory or none) |
+| **Hook** | Deterministic write-time enforcement (Claude / Copilot / Cursor block; Codex has none) |
 | **Command/script** | Executable operation (`npm run verify`, engine hooks) |
 | **Workflow** | CI enforcement (universal floor backstop) |
 | **Profile** | Project facts and enabled AI tools |
@@ -111,8 +111,8 @@ CLONE → npm ci → configure profile → COMPOSE → refresh skills canon → 
 | Instructions | `CLAUDE.md` | `copilot-instructions.md` | `.cursor/rules/harness.mdc` | `AGENTS.md` |
 | Agents | `.claude/agents/**` | `.github/agents/**` | `.cursor/agents/**` | roster in `AGENTS.md` |
 | Skills | `.claude/skills/**` | via `.agents/skills/**` | via `.agents/skills/**` | via `.agents/skills/**` |
-| Hooks | `settings.json` **blocks write** | `.github/hooks` advisory (prompt + write + stop) | `.cursor/hooks.json` advisory (post-edit + stop) | none |
-| Real gate | hook + floor | floor | floor | floor |
+| Hooks | `settings.json` **blocks write** | `.github/hooks` **PreToolUse denies** | `.cursor/hooks.json` **preToolUse denies** | none |
+| Real gate | hook + floor | hook + floor | hook + floor | floor |
 
 ---
 
@@ -122,7 +122,9 @@ CLONE → npm ci → configure profile → COMPOSE → refresh skills canon → 
 Same policy → portable skills → tool-specific projections → one deterministic verification floor.
 ```
 
-Only Claude can refuse a write (`PreToolUse`). Copilot / Cursor / Codex / humans share:
+Claude (`PreToolUse`), Copilot (`PreToolUse` / exit 2), and Cursor (`preToolUse` / exit 2) refuse a
+violating Write/Edit before disk when the shared hook scripts run. Codex has no hook API. Everyone —
+including humans and any missed hook — still shares:
 
 `npm run verify` → git pre-push → CI rule scan + tests
 

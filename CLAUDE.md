@@ -30,7 +30,7 @@ GATHER → SPECIFY → BUILD → GUARD → EVALUATE → EXECUTE → DIAGNOSE →
 - Repairs are bounded by `loops.gateRepairLimit`.
 
 The complete procedure is [`docs/START-HERE.md`](docs/START-HERE.md). How one policy is projected into
-Claude, Copilot, Cursor, and Codex — and why only Claude blocks a write — is in
+Claude, Copilot, Cursor, and Codex — and which tools can refuse a write — is in
 [`docs/architecture/cross-tool-configuration.md`](docs/architecture/cross-tool-configuration.md).
 
 ## Architecture

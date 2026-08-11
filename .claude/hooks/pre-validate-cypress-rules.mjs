@@ -39,6 +39,6 @@ for (const v of violations) {
   console.error(`- ${toPosix(v.filePath)}:${v.lineNumber} -> ${v.message}`);
 }
 console.error("");
-console.error("Fix violations before Claude writes this file.");
+console.error("Fix violations before the write proceeds.");
 
 process.exit(2);

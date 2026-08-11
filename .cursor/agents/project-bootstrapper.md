@@ -30,9 +30,10 @@ to be installed on one machine — a teammate joining with a different tool make
 Both adapters stay enabled if the answer is unknown, because silence should degrade to everything
 wired, never to nothing enforced.
 
-Be accurate about what each tool can do when asking: only Claude Code refuses a violating write.
-Copilot receives the same rules as advisory text, so a Copilot-only team's real gate is
-`npm run verify` plus the pre-push hook. Say so rather than implying equivalent protection.
+Be accurate about what each tool can do when asking: Claude, Copilot, and Cursor refuse a violating
+write via pre-tool hooks (shared scripts under `.claude/hooks/`). Codex has no hook API, so a
+Codex-only team's real gate is `npm run verify` plus the pre-push hook. Say so rather than implying
+every tool has identical write-time protection.
 
 ## Build order
 
