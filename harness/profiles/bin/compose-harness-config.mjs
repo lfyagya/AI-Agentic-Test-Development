@@ -74,6 +74,7 @@ export function compose(profile, adaptersDir = ADAPTERS) {
     rules: base.rules,
     agents: base.agents,
     hooks: base.hooks,
+    ...(base.skills ? { skills: base.skills } : {}),
     permissions: over.permissions ?? base.permissions,
   };
   return config;

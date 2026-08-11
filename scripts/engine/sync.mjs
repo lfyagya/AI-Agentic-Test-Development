@@ -4,15 +4,23 @@ import { fileURLToPath } from "node:url";
 import {
   GENERATED_AGENT_MARKER,
   GENERATED_HOOK_MARKER,
+  GENERATED_SKILL_MARKER,
   adapterEnabled,
   agentInstructions,
   claudeAgent,
   claudeSettingsText,
+  codexInstructionsText,
   copilotAgent,
   copilotHooksText,
   copilotInstructions,
+  cursorAgent,
+  cursorHooksText,
+  cursorRulesText,
   injectRules,
+  listSkillFiles,
+  portableSkillsEnabled,
   readConfig,
+  skillMarkerText,
 } from "./templates.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -56,8 +64,66 @@ function syncRules(relativePath) {
   write(relativePath, content);
 }
 
+function copySkillTree(skill, relativeTargetRoot) {
+  const sourceRoot = path.join(root, skill.source);
+  const files = listSkillFiles(root, skill.source);
+  const skillDir = path.join(relativeTargetRoot, skill.name);
+  for (const file of files) {
+    const content = fs.readFileSync(path.join(sourceRoot, file), "utf8");
+    write(path.join(skillDir, file).replaceAll("\\", "/"), content);
+  }
+}
+
+function reconcileSkillProjection(relativeRoot, expectedNames) {
+  const absolute = path.join(root, relativeRoot);
+  const markerPath = path.join(absolute, ".harness-generated");
+  if (!fs.existsSync(absolute)) return;
+  if (!fs.existsSync(markerPath)) return;
+  if (!fs.readFileSync(markerPath, "utf8").includes(GENERATED_SKILL_MARKER)) return;
+
+  for (const entry of fs.readdirSync(absolute, { withFileTypes: true })) {
+    if (entry.name === ".harness-generated") continue;
+    if (!entry.isDirectory()) continue;
+    if (!expectedNames.has(entry.name)) {
+      fs.rmSync(path.join(absolute, entry.name), { recursive: true, force: true });
+      console.log(`removed ${path.join(relativeRoot, entry.name)}`);
+    }
+  }
+}
+
+function removeSkillProjection(relativeRoot) {
+  const absolute = path.join(root, relativeRoot);
+  const markerPath = path.join(absolute, ".harness-generated");
+  if (!fs.existsSync(markerPath)) return;
+  if (!fs.readFileSync(markerPath, "utf8").includes(GENERATED_SKILL_MARKER)) return;
+  fs.rmSync(absolute, { recursive: true, force: true });
+  console.log(`removed ${relativeRoot}`);
+}
+
+function syncSkills() {
+  const skills = config.skills ?? [];
+  const expected = new Set(skills.map((skill) => skill.name));
+
+  if (adapterEnabled(config, "claude") && skills.length) {
+    for (const skill of skills) copySkillTree(skill, ".claude/skills");
+    write(".claude/skills/.harness-generated", skillMarkerText());
+    reconcileSkillProjection(".claude/skills", expected);
+  } else {
+    removeSkillProjection(".claude/skills");
+  }
+
+  if (portableSkillsEnabled(config) && skills.length) {
+    for (const skill of skills) copySkillTree(skill, ".agents/skills");
+    write(".agents/skills/.harness-generated", skillMarkerText());
+    reconcileSkillProjection(".agents/skills", expected);
+  } else {
+    removeSkillProjection(".agents/skills");
+  }
+}
+
 const claudeAgents = new Set();
 const copilotAgents = new Set();
+const cursorAgents = new Set();
 const extension = config.agentFileExtension ?? ".agent.md";
 
 for (const agent of config.agents) {
@@ -72,10 +138,16 @@ for (const agent of config.agents) {
     copilotAgents.add(target);
     write(target, copilotAgent(agent, instructions));
   }
+  if (adapterEnabled(config, "cursor")) {
+    const target = path.join(".cursor", "agents", `${agent.name}.md`);
+    cursorAgents.add(target);
+    write(target, cursorAgent(agent, instructions));
+  }
 }
 
 reconcileAgentDirectory(path.join(".claude", "agents"), claudeAgents);
 reconcileAgentDirectory(path.join(".github", "agents"), copilotAgents);
+reconcileAgentDirectory(path.join(".cursor", "agents"), cursorAgents);
 
 if (adapterEnabled(config, "claude")) {
   write(".claude/settings.json", claudeSettingsText(config));
@@ -91,5 +163,20 @@ if (adapterEnabled(config, "copilot")) {
   removeOwned(".github/hooks/harness.json", GENERATED_HOOK_MARKER);
 }
 
+if (adapterEnabled(config, "cursor")) {
+  write(".cursor/rules/harness.mdc", cursorRulesText(config));
+  write(".cursor/hooks.json", cursorHooksText(config));
+} else {
+  removeOwned(".cursor/rules/harness.mdc", "GENERATED FROM harness.config.json");
+  removeOwned(".cursor/hooks.json", '"_generated"');
+}
+
+if (adapterEnabled(config, "codex")) {
+  write("AGENTS.md", codexInstructionsText(config));
+} else {
+  removeOwned("AGENTS.md", "GENERATED FROM harness.config.json");
+}
+
+syncSkills();
 syncRules("CLAUDE.md");
 syncRules("README.md");

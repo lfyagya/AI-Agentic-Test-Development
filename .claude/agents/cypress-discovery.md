@@ -108,3 +108,11 @@ UNOBSERVED:    <what could not be confirmed, and why>
 TESTABILITY:   <missing test attributes worth requesting from the app team>
 NEXT STEP:     cypress-generator with requirement <id>
 ```
+
+## Required Cypress skills for this role
+
+The skill knows *how* to work with Cypress. This agent still owns *when*, *why*, and harness
+constraints (requirements, config → commands → tests, gate). Load and follow:
+
+- `cypress-docs` (harness/skills/cypress/cypress-docs) — Grounds answers in official Cypress documentation and refuses unverified API claims. Invoke with `/cypress-docs` or let the tool auto-load it.
+

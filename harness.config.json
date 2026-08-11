@@ -8,6 +8,12 @@
     },
     "copilot": {
       "enabled": true
+    },
+    "cursor": {
+      "enabled": true
+    },
+    "codex": {
+      "enabled": true
     }
   },
   "project": {
@@ -226,6 +232,42 @@
       "session-end-reminder.mjs"
     ]
   },
+  "skills": [
+    {
+      "name": "cypress-author",
+      "description": "Creates, updates, and fixes Cypress tests using project conventions and stable selectors.",
+      "source": "harness/skills/cypress/cypress-author",
+      "version": "1.0.1",
+      "upstream": "cypress-io/ai-toolkit",
+      "roles": [
+        "BUILD",
+        "DIAGNOSE"
+      ]
+    },
+    {
+      "name": "cypress-explain",
+      "description": "Explains, reviews, and critiques Cypress tests and concepts without changing code.",
+      "source": "harness/skills/cypress/cypress-explain",
+      "version": "1.0.1",
+      "upstream": "cypress-io/ai-toolkit",
+      "roles": [
+        "EVALUATE",
+        "DIAGNOSE"
+      ]
+    },
+    {
+      "name": "cypress-docs",
+      "description": "Grounds answers in official Cypress documentation and refuses unverified API claims.",
+      "source": "harness/skills/cypress/cypress-docs",
+      "version": "1.0.0",
+      "upstream": "cypress-io/ai-toolkit",
+      "roles": [
+        "DISCOVER",
+        "BUILD",
+        "DIAGNOSE"
+      ]
+    }
+  ],
   "permissions": {
     "defaultMode": "plan",
     "allow": [

@@ -2,7 +2,7 @@
   "$comment": "Profile for the Cypress boilerplate itself — the reference instantiation of the cypress adapter. Every field below is a project fact; all policy comes from adapters/cypress.json.",
   "key": "cypress-boilerplate",
   "displayName": "Cypress Automation Boilerplate",
-  "owner": "<accountable QA owner>",
+  "owner": "cypress-harness-maintainers",
   "adapter": "cypress",
   "language": "javascript",
   "projectName": "cypress-automation-boilerplate",
@@ -12,6 +12,12 @@
       "enabled": true
     },
     "copilot": {
+      "enabled": true
+    },
+    "cursor": {
+      "enabled": true
+    },
+    "codex": {
       "enabled": true
     }
   }

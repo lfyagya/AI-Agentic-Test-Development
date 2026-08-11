@@ -220,3 +220,11 @@ Phase 6: Environment Hygiene        — [PASS/FAIL]
 ### Warnings
 - [file:line] — [description]
 ```
+
+## Required Cypress skills for this role
+
+The skill knows *how* to work with Cypress. This agent still owns *when*, *why*, and harness
+constraints (requirements, config → commands → tests, gate). Load and follow:
+
+- `cypress-explain` (harness/skills/cypress/cypress-explain) — Explains, reviews, and critiques Cypress tests and concepts without changing code. Invoke with `/cypress-explain` or let the tool auto-load it.
+

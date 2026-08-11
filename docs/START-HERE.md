@@ -25,7 +25,7 @@ The harness is not a test framework. It governs one.
 ```mermaid
 flowchart TD
     L3["<b>Layer 3 — PROJECT TRUTH</b><br/>what is true about THIS project<br/>docs/application-intelligence · evidence/requirements.json"]
-    L2["<b>Layer 2 — HARNESS</b><br/>how the AI is constrained while writing tests<br/>harness/profiles · harness/agents · .claude/hooks · scripts/"]
+    L2["<b>Layer 2 — HARNESS</b><br/>how the AI is constrained while writing tests<br/>harness/profiles · harness/agents · .claude/hooks · scripts/engine"]
     L1["<b>Layer 1 — TEST FRAMEWORK</b><br/>how tests are written<br/>cypress/configs → cypress/support/commands → cypress/tests"]
 
     L3 -->|parameterises| L2
@@ -98,7 +98,10 @@ installation is broken — do not start intake.
 
 ### 2.4 Starting a brand-new project from zero
 
-Do not hand-write `harness.config.json`; it is generated. Write an ~8-line profile and compose it:
+Do not hand-write `harness.config.json`; it is generated. Write an ~8-line profile and compose it.
+
+Paste [`harness/profiles/configure.prompt.md`](../harness/profiles/configure.prompt.md) into your AI,
+or copy the template by hand:
 
 ```bash
 cp harness/profiles/projects/_template.json harness/profiles/projects/<key>.json
@@ -108,8 +111,22 @@ cp harness/profiles/projects/_template.json harness/profiles/projects/<key>.json
 npm run harness:compose && npm run harness:sync && npm run harness:check
 ```
 
-You now have the full seven-role roster, every rule enforced at write time, and both AI adapters
-wired — with no tests. See [`harness/profiles/README.md`](../harness/profiles/README.md).
+You now have the full seven-role roster, every rule enforced at write time, enabled AI adapters
+wired, and Cypress skills projected to `.claude/skills` + `.agents/skills` — with no tests. See
+[`harness/profiles/README.md`](../harness/profiles/README.md) and
+[cross-tool-configuration.md](architecture/cross-tool-configuration.md).
+
+After compose/sync, refresh or confirm skills:
+
+```bash
+npm run harness:skills -- --list
+```
+
+```bash
+npm run harness:skills   # only when refreshing the canon from upstream
+```
+
+There is **no** project-profiles report builder. `output/` stays gitignored.
 
 ### 2.5 Environment and secrets
 
@@ -141,10 +158,11 @@ flowchart TD
 
     CFG["harness.config.json<br/><b>GENERATED</b>"]
 
-    subgraph PROJ["GENERATED PROJECTIONS"]
+    subgraph PROJ["GENERATED PROJECTIONS (only for enabled adapters)"]
         P1[".claude/agents/**<br/>.github/agents/**"]
         P2[".claude/settings.json"]
         P3[".github/copilot-instructions.md<br/>.github/hooks/harness.json"]
+        P5[".cursor/rules/harness.mdc<br/>AGENTS.md (Codex)"]
         P4["CLAUDE.md · README.md<br/><i>rule block only</i>"]
     end
 
@@ -153,6 +171,7 @@ flowchart TD
     CFG -- "harness:sync" --> P1
     CFG --> P2
     CFG --> P3
+    CFG --> P5
     CFG --> P4
     C -- "harness:sync" --> P1
     D -- "harness:sync" --> P1
@@ -161,6 +180,11 @@ flowchart TD
     style CFG fill:#fef7e0,stroke:#f9ab00,color:#111
     style PROJ fill:#f1f3f4,stroke:#9aa0a6,color:#111
 ```
+
+Four AI tools are supported — Claude Code, Copilot, Cursor, Codex — and each project's profile enables
+the subset the team uses. Disabling one deletes its projection on the next sync. The full per-tool
+matrix and why only Claude gets a blocking hook is in
+[cross-tool-configuration.md](architecture/cross-tool-configuration.md).
 
 After any policy change:
 
@@ -198,11 +222,12 @@ repo every teammate clones would be the wrong default. Nothing in the harness de
 | Key                    | Owns                                                   |
 | ---------------------- | ------------------------------------------------------ |
 | `framework`, `project` | adapter, paths, architecture, spec glob                |
-| `adapters`             | which AI tools get projections                         |
+| `adapters`             | which AI tools get projections (claude/copilot/cursor/codex) |
 | `context`, `loops`     | model effort; `gateRepairLimit`                        |
 | `rules[]`              | `id`, `severity`, `never`, `instead`, `why`, `message` |
 | `agents[]`             | `name`, `role`, `model`, `tools`, `when`               |
 | `hooks`                | which hook script runs on which event                  |
+| `skills[]`             | pinned trees under `harness/skills/**` with `roles[]`; projected to `.claude/skills` + `.agents/skills` |
 | `permissions`          | `defaultMode: plan`, allow/deny lists                  |
 
 **To add a rule:** append to `rules[]` in the adapter baseline, compose, sync. It appears in
@@ -241,8 +266,10 @@ flowchart TD
 | `npm run verify`                   | locally                 | free                                     | yes, on demand              |
 | CI                                 | hosted runners          | free on public repos; metered on private | backstop only               |
 
-Hooks fire only in Claude Code sessions, so CI exists to catch **human-authored** code. Without CI,
-run the same gates before every push — no dependency, just core git:
+Blocking hooks fire only in Claude Code sessions — Copilot, Cursor, and Codex have no pre-edit block
+(see [cross-tool-configuration.md](architecture/cross-tool-configuration.md)), so the floor below is
+their real gate, and CI catches **human-authored** code too. Without CI, run the same gates before
+every push — no dependency, just core git:
 
 ```bash
 git config core.hooksPath .githooks
@@ -251,7 +278,7 @@ git config core.hooksPath .githooks
 `SKIP_VERIFY=1 git push` bypasses it deliberately.
 
 Every rule is enforced identically in `.js`, `.ts`, `.mjs`, `.mts`, `.cjs`, and `.cts`.
-`scripts/harness/test-rule-extensions.mjs` asserts the same violating spec yields the **same count**
+`scripts/engine/test-rule-extensions.mjs` asserts the same violating spec yields the **same count**
 in all six. That test exists because it was once false: a `.cy.ts` spec with five violations produced
 zero findings, so TypeScript looked like it worked while silently disabling the guardrail.
 
@@ -353,7 +380,7 @@ Start project intake for <project>.
 Application source: <repository path or URL>
 Requirement source: <tracker/specification/owner>
 Known environments: <dev/qa/staging/prod>
-AI tools the team will use: <claude | copilot | both>
+AI tools the team will use: <any of claude, copilot, cursor, codex>
 Do not generate tests. Record unknowns and stop for approval where safety or expected behavior is unclear.
 ```
 
@@ -370,17 +397,25 @@ Never put credentials, PII, payment data, or production records in these files.
 at the top level of `harness/profiles/projects/<key>.json`:
 
 ```json
-"adapters": { "claude": { "enabled": true }, "copilot": { "enabled": false } }
+"adapters": {
+  "claude": { "enabled": true },
+  "copilot": { "enabled": false },
+  "cursor": { "enabled": true },
+  "codex": { "enabled": false }
+}
 ```
 
 Then `npm run harness:compose && npm run harness:sync`. Disabling an adapter **deletes its generated
-files** — a Claude-only team stops carrying `.github/agents/`, `copilot-instructions.md`, and
-`.github/hooks/harness.json` for a tool it never opens. At least one adapter must stay enabled;
-composing with none is refused, because it would emit a config whose rules reach no tool at all.
+files** — a Claude-only team stops carrying `.github/agents/`, `copilot-instructions.md`,
+`.github/hooks/harness.json`, `.cursor/rules/`, and `AGENTS.md` for tools it never opens. At least one
+adapter must stay enabled; composing with none is refused, because it would emit a config whose rules
+reach no tool at all.
 
-Be clear-eyed about the trade: **only Claude Code can refuse a violating write.** Copilot receives the
-same rules as advisory text, so a Copilot-only team's real gate is `npm run verify` and the pre-push
-hook (§4).
+Be clear-eyed about the trade: **only Claude Code can refuse a violating write** (its `PreToolUse`
+hook). Copilot, Cursor, and Codex receive the same rules as guidance — Cursor has no pre-edit event
+and Codex has no hooks at all — so their real gate is `npm run verify` and the pre-push hook (§4). Run
+`npm run harness:skills` to install the pinned official Cypress skills into whichever tools are
+present. Full detail: [cross-tool-configuration.md](architecture/cross-tool-configuration.md).
 
 Do not proceed until the owner approves environment mutation rules, authentication, selector strategy,
 synthetic data creation and cleanup, and at least one module contract.
@@ -388,6 +423,10 @@ synthetic data creation and cleanup, and at least one module contract.
 ### Step 2 — SPECIFY and approve requirements
 
 The agent drafts; **a human promotes to `active`**. Nothing is built from a draft.
+
+Use [`application-intelligence/test-plan.md`](application-intelligence/test-plan.md) (prompt + field
+rules) and [`_template/requirement.example.json`](application-intelligence/_template/requirement.example.json).
+The registry is only `evidence/requirements.json` — do not create a parallel test-plan tree.
 
 ```json
 {
@@ -702,9 +741,12 @@ This guide is self-contained; the documents below are supporting detail, indexed
 | Why configs, commands, and tests are split | [test-organization.md](reference/test-organization.md)                      |
 | Framework standards in full                | [framework-standards.md](reference/framework-standards.md)                  |
 | The lifecycle contract as a spec           | [harness-lifecycle-spec.md](architecture/harness-lifecycle-spec.md)         |
+| How one policy reaches all four AI tools   | [cross-tool-configuration.md](architecture/cross-tool-configuration.md)     |
 | Adding or updating modules                 | [framework-maintenance-guide.md](guides/framework-maintenance-guide.md)     |
 | CI pipeline setup in detail                | [ci-cd-guide.md](guides/ci-cd-guide.md)                                     |
 | Project and module context templates       | [application-intelligence](application-intelligence/README.md)              |
+| Test plan → requirements registry          | [application-intelligence/test-plan.md](application-intelligence/test-plan.md) |
+| Profile configure prompt                   | [../harness/profiles/configure.prompt.md](../harness/profiles/configure.prompt.md) |
 | Why the architecture is what it is         | [decisions](decisions/README.md)                                            |
 | Composing a config from a profile          | [harness/profiles/README.md](../harness/profiles/README.md)                 |
 

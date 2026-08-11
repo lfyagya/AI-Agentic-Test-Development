@@ -8,9 +8,15 @@ README.md
 harness.config.json
 .claude/agents/
 .claude/settings.json
+.claude/skills/
 .github/agents/
 .github/copilot-instructions.md
 .github/hooks/harness.json
+.cursor/agents/
+.cursor/rules/
+.cursor/hooks.json
+.agents/skills/
+AGENTS.md
 
 # Generated artifacts and run output
 evidence/runs/
@@ -25,9 +31,9 @@ package-lock.json
 
 # harness:format:check verifies these with its own explicit --print-width 100. Leaving them to
 # `npm run format` (default width) rewraps them and fails that gate. The gate owns them.
-scripts/harness/check-drift.mjs
-scripts/harness/sync.mjs
-scripts/harness/templates.mjs
-scripts/harness/test-agent-adapters.mjs
-scripts/harness/test-block-rules-enforced.mjs
-scripts/harness/test-config-paths-honest.mjs
+scripts/engine/check-drift.mjs
+scripts/engine/sync.mjs
+scripts/engine/templates.mjs
+scripts/engine/test-agent-adapters.mjs
+scripts/engine/test-block-rules-enforced.mjs
+scripts/engine/test-config-paths-honest.mjs

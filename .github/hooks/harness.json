@@ -1,6 +1,17 @@
 {
   "version": 1,
   "hooks": {
+    "userPromptSubmitted": [
+      {
+        "type": "command",
+        "command": "node .claude/hooks/prompt-duplication-guard.mjs",
+        "cwd": ".",
+        "timeoutSec": 30,
+        "env": {
+          "HARNESS_GENERATED_FROM": "harness.config.json"
+        }
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Edit|Write",
@@ -18,6 +29,17 @@
         "matcher": "Edit|Write",
         "type": "command",
         "command": "node .claude/hooks/validate-cypress-rules.mjs",
+        "cwd": ".",
+        "timeoutSec": 30,
+        "env": {
+          "HARNESS_GENERATED_FROM": "harness.config.json"
+        }
+      }
+    ],
+    "agentStop": [
+      {
+        "type": "command",
+        "command": "node .claude/hooks/session-end-reminder.mjs",
         "cwd": ".",
         "timeoutSec": 30,
         "env": {

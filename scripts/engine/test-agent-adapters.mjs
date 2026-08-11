@@ -11,6 +11,7 @@ import {
   copilotAgent,
   copilotHooks,
   copilotTools,
+  cursorAgent,
   readConfig,
 } from "./templates.mjs";
 
@@ -20,6 +21,26 @@ const config = readConfig(root);
 
 assert.equal(adapterEnabled({ adapters: { claude: { enabled: false } } }, "claude"), false);
 assert.equal(adapterEnabled({}, "claude"), false);
+
+// Skills are pinned under harness/skills and bound to lifecycle roles. Sync projects them to
+// .claude/skills and .agents/skills only.
+assert.ok(Array.isArray(config.skills) && config.skills.length >= 3, "skills[] missing");
+for (const name of ["cypress-author", "cypress-explain", "cypress-docs"]) {
+  const skill = config.skills.find((s) => s.name === name);
+  assert.ok(skill, `skills[] must declare ${name}`);
+  assert.match(skill.source, /^harness\/skills\//, `${name}.source must be under harness/skills/`);
+  assert.match(skill.version, /^\d+\.\d+\.\d+$/, `${name}.version must be a semver pin`);
+  assert.ok(Array.isArray(skill.roles) && skill.roles.length > 0, `${name}.roles required`);
+  assert.ok(
+    fs.existsSync(path.join(root, skill.source, "SKILL.md")),
+    `${skill.source}/SKILL.md missing from canon`,
+  );
+}
+
+const author = config.skills.find((s) => s.name === "cypress-author");
+assert.ok(author.roles.includes("BUILD"));
+const explain = config.skills.find((s) => s.name === "cypress-explain");
+assert.ok(explain.roles.includes("EVALUATE"));
 
 for (const agent of config.agents) {
   const instructions = agentInstructions(root, config, agent);
@@ -48,6 +69,12 @@ for (const agent of config.agents) {
       copilotAgent(agent, instructions),
     );
   }
+  if (adapterEnabled(config, "cursor")) {
+    assert.equal(
+      fs.readFileSync(path.join(root, ".cursor", "agents", `${agent.name}.md`), "utf8"),
+      cursorAgent(agent, instructions),
+    );
+  }
 }
 
 const gate = config.agents.find((agent) => agent.role === "EVALUATE");
@@ -56,17 +83,22 @@ const gateInstructions = agentInstructions(root, config, gate);
 assert.match(gateInstructions, /at least 80\/100/);
 assert.match(gateInstructions, /@P0/);
 assert.match(gateInstructions, /never grades its own output/i);
+assert.match(gateInstructions, /Required Cypress skills for this role/);
+assert.match(gateInstructions, /cypress-explain/);
 assert.deepEqual(gate.tools, ["Read", "Grep", "Glob"]);
 assert.deepEqual(copilotTools(gate), ["read", "search"]);
 assert.match(claudeAgent(gate, "gate"), /permissionMode: plan/);
 assert.doesNotMatch(claudeAgent(gate, "gate"), /\n {2}- (Bash|Edit|Write)\n/);
 assert.match(copilotAgent(gate, "gate"), /tools: \["read","search"\]/);
+assert.match(cursorAgent(gate, "gate"), /readonly: true/);
 
 const builder = config.agents.find((agent) => agent.role === "BUILD");
 assert.ok(builder, "BUILD agent is required");
 const builderInstructions = agentInstructions(root, config, builder);
 assert.match(builderInstructions, /SMOKE.*REGRESSION/s);
 assert.match(builderInstructions, /failure-safe cleanup/);
+assert.match(builderInstructions, /cypress-author/);
+assert.match(builderInstructions, /cypress-docs/);
 
 const gatherer = config.agents.find((agent) => agent.role === "GATHER");
 assert.ok(gatherer, "GATHER agent is required");
@@ -82,6 +114,12 @@ assert.ok(
     (hook) => hook.env?.HARNESS_GENERATED_FROM === "harness.config.json",
   ),
 );
+assert.ok(hooks.hooks.userPromptSubmitted?.length >= 1, "Copilot prompt hook missing");
+assert.ok(hooks.hooks.agentStop?.length >= 1, "Copilot stop hook missing");
+assert.ok(
+  hooks.hooks.userPromptSubmitted.every((hook) => hook.command.includes("prompt-duplication-guard")),
+);
+assert.ok(hooks.hooks.agentStop.every((hook) => hook.command.includes("session-end-reminder")));
 
 assert.throws(
   () =>
@@ -98,7 +136,7 @@ assert.throws(
 
 const fixture = fs.mkdtempSync(path.join(os.tmpdir(), "harness-adapter-"));
 try {
-  const fixtureScripts = path.join(fixture, "scripts", "harness");
+  const fixtureScripts = path.join(fixture, "scripts", "engine");
   fs.mkdirSync(fixtureScripts, { recursive: true });
   fs.mkdirSync(path.join(fixture, "harness", "agents"), { recursive: true });
   fs.copyFileSync(
@@ -110,7 +148,12 @@ try {
   const fixtureConfig = {
     version: 1,
     framework: "cypress",
-    adapters: { claude: { enabled: true }, copilot: { enabled: true } },
+    adapters: {
+      claude: { enabled: true },
+      copilot: { enabled: true },
+      cursor: { enabled: true },
+      codex: { enabled: true },
+    },
     agentFileExtension: ".md",
     project: {
       name: "fixture",
@@ -142,7 +185,16 @@ try {
         when: "fixture",
       },
     ],
-    hooks: { preWrite: ["pre.mjs"], postWrite: ["post.mjs"] },
+    hooks: { preWrite: ["pre.mjs"], postWrite: ["post.mjs"], stop: ["stop.mjs"] },
+    skills: [
+      {
+        name: "fixture-skill",
+        description: "fixture",
+        source: "harness/skills/cypress/fixture-skill",
+        version: "1.0.0",
+        roles: ["BUILD"],
+      },
+    ],
     permissions: { defaultMode: "plan", allow: [], deny: [] },
   };
   const configPath = path.join(fixture, "harness.config.json");
@@ -152,6 +204,13 @@ try {
     "limit={{gateRepairLimit}}\n{{qaFoundations}}\n",
   );
   fs.writeFileSync(path.join(fixture, "harness", "qa-automation-foundations.md"), "foundation\n");
+  fs.mkdirSync(path.join(fixture, "harness", "skills", "cypress", "fixture-skill"), {
+    recursive: true,
+  });
+  fs.writeFileSync(
+    path.join(fixture, "harness", "skills", "cypress", "fixture-skill", "SKILL.md"),
+    "# fixture skill\n",
+  );
   fs.writeFileSync(
     path.join(fixture, "CLAUDE.md"),
     "# Fixture\n\n<!-- HARNESS:RULES:START -->old<!-- HARNESS:RULES:END -->\n",
@@ -167,15 +226,41 @@ try {
       encoding: "utf8",
     });
   const enabledRun = runSync();
-  assert.equal(enabledRun.status, 0, enabledRun.stderr);
+  assert.equal(enabledRun.status, 0, enabledRun.stderr || enabledRun.stdout);
   assert.match(
     fs.readFileSync(path.join(fixture, ".claude", "agents", "old-agent.md"), "utf8"),
     /limit=2\nfoundation/,
   );
+  assert.match(
+    fs.readFileSync(path.join(fixture, ".claude", "agents", "old-agent.md"), "utf8"),
+    /fixture-skill/,
+  );
   assert.ok(fs.existsSync(path.join(fixture, ".github", "hooks", "harness.json")));
+  assert.ok(fs.existsSync(path.join(fixture, ".cursor", "agents", "old-agent.md")));
+  assert.ok(fs.existsSync(path.join(fixture, ".cursor", "hooks.json")));
+  assert.ok(fs.existsSync(path.join(fixture, ".claude", "skills", "fixture-skill", "SKILL.md")));
+  assert.ok(fs.existsSync(path.join(fixture, ".agents", "skills", "fixture-skill", "SKILL.md")));
+
+  // Cursor projects a rules file; Codex projects a root AGENTS.md. Both carry the generated banner
+  // so a later disable can remove them by marker.
+  const cursorRulesPath = path.join(fixture, ".cursor", "rules", "harness.mdc");
+  const codexPath = path.join(fixture, "AGENTS.md");
+  assert.ok(fs.existsSync(cursorRulesPath), "cursor rules not generated when enabled");
+  assert.ok(fs.existsSync(codexPath), "AGENTS.md not generated when codex enabled");
+  const cursorText = fs.readFileSync(cursorRulesPath, "utf8");
+  assert.match(cursorText, /^---\ndescription: /, "cursor .mdc must start with frontmatter");
+  assert.match(cursorText, /alwaysApply: true/, "cursor rule must always apply");
+  assert.match(cursorText, /GENERATED FROM harness\.config\.json/);
+  assert.match(
+    fs.readFileSync(codexPath, "utf8"),
+    /GENERATED FROM harness\.config\.json/,
+    "AGENTS.md must carry the generated banner",
+  );
 
   fixtureConfig.adapters.claude.enabled = false;
   fixtureConfig.adapters.copilot.enabled = false;
+  fixtureConfig.adapters.cursor.enabled = false;
+  fixtureConfig.adapters.codex.enabled = false;
   fixtureConfig.agents = [
     {
       name: "new-agent",
@@ -192,9 +277,15 @@ try {
   assert.equal(disabledRun.status, 0, disabledRun.stderr);
   assert.ok(!fs.existsSync(path.join(fixture, ".claude", "agents", "old-agent.md")));
   assert.ok(!fs.existsSync(path.join(fixture, ".github", "agents", "old-agent.md")));
+  assert.ok(!fs.existsSync(path.join(fixture, ".cursor", "agents", "old-agent.md")));
   assert.ok(!fs.existsSync(path.join(fixture, ".claude", "settings.json")));
   assert.ok(!fs.existsSync(path.join(fixture, ".github", "copilot-instructions.md")));
   assert.ok(!fs.existsSync(path.join(fixture, ".github", "hooks", "harness.json")));
+  assert.ok(!fs.existsSync(cursorRulesPath), "cursor rules survived a disable");
+  assert.ok(!fs.existsSync(path.join(fixture, ".cursor", "hooks.json")));
+  assert.ok(!fs.existsSync(codexPath), "AGENTS.md survived a codex disable");
+  assert.ok(!fs.existsSync(path.join(fixture, ".claude", "skills")));
+  assert.ok(!fs.existsSync(path.join(fixture, ".agents", "skills")));
 } finally {
   fs.rmSync(fixture, { recursive: true, force: true });
 }
