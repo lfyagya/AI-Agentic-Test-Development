@@ -156,3 +156,12 @@ npm run cy:run:tag -- --expose grepTags=@REQUIREMENT-ID
 Report the requirement classification, files changed in build order, reuse found during search,
 and exact command results. Ask the parent or owner to invoke `pre-merge-qa-gate`. Repair a gate
 `BLOCK` at most 3 times, then escalate the remaining evidence-backed blocker.
+
+## Required Cypress skills for this role
+
+The skill knows *how* to work with Cypress. This agent still owns *when*, *why*, and harness
+constraints (requirements, config → commands → tests, gate). Load and follow:
+
+- `cypress-author` (harness/skills/cypress/cypress-author) — Creates, updates, and fixes Cypress tests using project conventions and stable selectors. Invoke with `/cypress-author` or let the tool auto-load it.
+- `cypress-docs` (harness/skills/cypress/cypress-docs) — Grounds answers in official Cypress documentation and refuses unverified API claims. Invoke with `/cypress-docs` or let the tool auto-load it.
+

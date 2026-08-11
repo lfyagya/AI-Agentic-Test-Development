@@ -13,5 +13,6 @@
   "tier": "smoke",
   "path": "positive",
   "status": "draft",
-  "source": "<ticket, specification, or source path>"
+  "source": "<ticket, specification, or docs/application-intelligence/<module>/module-context.md#anchor>"
 }
+

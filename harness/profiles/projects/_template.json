@@ -3,7 +3,7 @@
 
   "key": "<short-kebab-key>",
   "displayName": "<Project Name>",
-  "owner": "<a person, not a team>",
+  "owner": "<a person, not a team — replace before compose>",
 
   "adapter": "cypress",
   "language": "javascript",
@@ -11,10 +11,12 @@
   "projectName": "<name written into harness.config.json project.name>",
   "repo": "<path or URL of the repo this composes into>",
 
-  "$adapters": "ASK THE TEAM. Which AI coding tools will actually be used here? Disabling one removes its generated files on the next sync, so a Claude-only team stops carrying Copilot files it never opens. At least one must stay enabled. Note that only Claude Code can refuse a write: Copilot receives the same rules as advisory text, so a Copilot-only team relies on `npm run verify` and the pre-push hook as its real gate.",
+  "$adapters": "ASK THE TEAM. Which AI coding tools will actually be used here? Enable each one the team uses; disabling one removes its generated files on the next sync, so a Claude-only team stops carrying files it never opens. At least one must stay enabled. Only Claude Code can refuse a violating write (PreToolUse hook); Copilot, Cursor, and Codex receive the same rules as guidance, so their real gate is `npm run verify` and the pre-push hook. See docs/architecture/cross-tool-configuration.md.",
   "adapters": {
     "claude": { "enabled": true },
-    "copilot": { "enabled": true }
+    "copilot": { "enabled": true },
+    "cursor": { "enabled": false },
+    "codex": { "enabled": false }
   },
 
   "$overrides": "Optional. Omit the whole block to take adapter defaults. Only add a key here when this project genuinely differs — an override you did not need is config that will drift.",

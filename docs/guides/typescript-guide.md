@@ -36,7 +36,7 @@ This is worth stating plainly, because it was once false. Every rule matches `.j
 
 - Write-time hooks refuse a violating `.cy.ts` exactly as they refuse a `.cy.js`.
 - `npm run check:rules` scans both.
-- `scripts/harness/test-rule-extensions.mjs` asserts the same violating spec produces the **same
+- `scripts/engine/test-rule-extensions.mjs` asserts the same violating spec produces the **same
   number of findings** in all six extensions, and fails if a pattern is ever narrowed back.
 
 Before that guard existed, a `.cy.ts` spec with five block-severity violations produced zero

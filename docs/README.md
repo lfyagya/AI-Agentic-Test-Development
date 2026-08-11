@@ -16,9 +16,10 @@ Taxonomy is identical in the Playwright adapter: `guides/` for how-to, `referenc
 
 ## Architecture
 
-| Topic                       | Document                                                            |
-| --------------------------- | ------------------------------------------------------------------- |
-| Harness lifecycle contract  | [harness-lifecycle-spec.md](architecture/harness-lifecycle-spec.md) |
+| Topic                       | Document                                                                        |
+| --------------------------- | ------------------------------------------------------------------------------- |
+| Harness lifecycle contract  | [harness-lifecycle-spec.md](architecture/harness-lifecycle-spec.md)             |
+| Cross-tool config (4 tools) | [cross-tool-configuration.md](architecture/cross-tool-configuration.md)         |
 
 ## Guides
 
@@ -32,7 +33,11 @@ Taxonomy is identical in the Playwright adapter: `guides/` for how-to, `referenc
 
 ## Project intake
 
-Project and module context templates: [application-intelligence](application-intelligence/README.md).
+| Topic | Document |
+| ----- | -------- |
+| Profile configure prompt (adapters / compose) | [../harness/profiles/configure.prompt.md](../harness/profiles/configure.prompt.md) |
+| Project and module context templates | [application-intelligence](application-intelligence/README.md) |
+| Test plan → requirements registry | [application-intelligence/test-plan.md](application-intelligence/test-plan.md) |
 
 Application-specific context is created only after intake. The canonical requirement registry is
 `evidence/requirements.json`.

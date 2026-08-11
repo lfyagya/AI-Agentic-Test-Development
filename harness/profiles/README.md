@@ -4,7 +4,7 @@ This repo's complete Cypress configuration lives here. `harness.config.json` at 
 from these files, so a new project starts from zero by writing **one file**: its profile.
 
 ```text
-adapters/cypress.json       complete Cypress policy — 9 rules, 7 agents, 4 hooks, permissions
+adapters/cypress.json       complete Cypress policy — 9 rules, 7 agents, 4 hooks, 3 skills, permissions
 projects/_template.json     copy this to start a project
 projects/<key>.json         one project's facts (~8 lines)
 bin/compose-harness-config.mjs   profile + adapter → harness.config.json
@@ -23,6 +23,8 @@ selector rule is policy. A repo path is a fact. A profile that has grown a `rule
 re-created the problem this split exists to remove.
 
 ## Start from zero
+
+Paste [`configure.prompt.md`](configure.prompt.md) into your AI, or copy the template by hand:
 
 ```bash
 cp harness/profiles/projects/_template.json harness/profiles/projects/<key>.json
@@ -89,26 +91,43 @@ assertion is the guard.
 ## Which AI tools a project uses
 
 `adapters` is a **top-level profile field**, not an override — which tools a team uses is a project
-fact, like `owner` and `language`:
+fact, like `owner` and `language`. Four tools are supported: `claude`, `copilot`, `cursor`, `codex`:
 
 ```json
-"adapters": { "claude": { "enabled": true }, "copilot": { "enabled": false } }
+"adapters": {
+  "claude": { "enabled": true },
+  "copilot": { "enabled": false },
+  "cursor": { "enabled": true },
+  "codex": { "enabled": false }
+}
 ```
 
-Compose and sync, and the disabled adapter's generated files are **removed**: a Claude-only team stops
-carrying `.github/agents/`, `.github/copilot-instructions.md`, and `.github/hooks/harness.json`.
-`overrides.adapters` still works for older profiles.
+Compose and sync, and the disabled adapter's generated files are **removed**: e.g. a Claude+Cursor
+team stops carrying `.github/agents/`, `.github/copilot-instructions.md`, `.github/hooks/harness.json`,
+and `AGENTS.md`. `overrides.adapters` still works for older profiles.
 
-Both stay enabled when the answer is unknown — silence should degrade to everything wired, never to
-nothing enforced. Composing with **no** adapter enabled is refused outright: it would emit a config
-whose rules are all declared and reach no tool.
+`claude` and `copilot` stay enabled (cursor/codex off) when the answer is unknown — silence should
+degrade to something wired, never to nothing enforced. Composing with **no** adapter enabled is
+refused outright: it would emit a config whose rules are all declared and reach no tool.
 
 Ask the team; do not detect. What is installed on one machine is not what the team uses, and the guess
 breaks the moment someone joins with a different tool. The question belongs in intake — see
 `docs/START-HERE.md` step 1.
 
-**Only Claude Code can refuse a violating write.** Copilot gets the same rules as advisory text, so a
-Copilot-only team's real gate is `npm run verify` and the pre-push hook.
+**Only Claude Code can refuse a violating write** (its `PreToolUse` hook). Copilot, Cursor, and Codex
+get the same rules as guidance, so their real gate is `npm run verify` and the pre-push hook. The full
+per-tool matrix is in `docs/architecture/cross-tool-configuration.md`.
+
+## Cypress skills
+
+Official Cypress skills are pinned under `harness/skills/cypress/*` and declared in the adapter
+`skills[]` with `roles[]` (which lifecycle agents must load them). `npm run harness:sync` projects
+them to exactly two places:
+
+- `.claude/skills/**` when Claude is enabled
+- `.agents/skills/**` when Copilot, Cursor, or Codex is enabled (portable)
+
+Refresh the canon from upstream with `npm run harness:skills`, then compose + sync again.
 
 ## Changing policy
 

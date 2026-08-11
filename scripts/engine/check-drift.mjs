@@ -4,15 +4,23 @@ import { fileURLToPath } from "node:url";
 import {
   GENERATED_AGENT_MARKER,
   GENERATED_HOOK_MARKER,
+  GENERATED_SKILL_MARKER,
   adapterEnabled,
   agentInstructions,
   claudeAgent,
   claudeSettingsText,
+  codexInstructionsText,
   copilotAgent,
   copilotHooksText,
   copilotInstructions,
+  cursorAgent,
+  cursorHooksText,
+  cursorRulesText,
   injectRules,
+  listSkillFiles,
+  portableSkillsEnabled,
   readConfig,
+  skillMarkerText,
 } from "./templates.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -46,8 +54,49 @@ function checkGeneratedDirectory(relativeDirectory, expected) {
   }
 }
 
+function checkSkillProjection(relativeRoot, enabled) {
+  const skills = config.skills ?? [];
+  const absolute = path.join(root, relativeRoot);
+  const markerPath = path.join(absolute, ".harness-generated");
+
+  if (!enabled || skills.length === 0) {
+    if (fs.existsSync(markerPath)) failures.push(relativeRoot);
+    return;
+  }
+
+  check(path.join(relativeRoot, ".harness-generated").replaceAll("\\", "/"), skillMarkerText());
+  if (!fs.existsSync(markerPath)) {
+    failures.push(relativeRoot);
+    return;
+  }
+  if (!fs.readFileSync(markerPath, "utf8").includes(GENERATED_SKILL_MARKER)) {
+    failures.push(relativeRoot);
+    return;
+  }
+
+  const expectedNames = new Set(skills.map((skill) => skill.name));
+  for (const skill of skills) {
+    const sourceRoot = path.join(root, skill.source);
+    for (const file of listSkillFiles(root, skill.source)) {
+      const relativePath = path.join(relativeRoot, skill.name, file).replaceAll("\\", "/");
+      const expected = fs.readFileSync(path.join(sourceRoot, file), "utf8");
+      check(relativePath, expected);
+    }
+  }
+
+  if (fs.existsSync(absolute)) {
+    for (const entry of fs.readdirSync(absolute, { withFileTypes: true })) {
+      if (entry.name === ".harness-generated") continue;
+      if (entry.isDirectory() && !expectedNames.has(entry.name)) {
+        failures.push(path.join(relativeRoot, entry.name));
+      }
+    }
+  }
+}
+
 const claudeAgents = new Set();
 const copilotAgents = new Set();
+const cursorAgents = new Set();
 const extension = config.agentFileExtension ?? ".agent.md";
 
 for (const agent of config.agents) {
@@ -62,10 +111,16 @@ for (const agent of config.agents) {
     copilotAgents.add(target);
     check(target, copilotAgent(agent, instructions));
   }
+  if (adapterEnabled(config, "cursor")) {
+    const target = path.join(".cursor", "agents", `${agent.name}.md`);
+    cursorAgents.add(target);
+    check(target, cursorAgent(agent, instructions));
+  }
 }
 
 checkGeneratedDirectory(path.join(".claude", "agents"), claudeAgents);
 checkGeneratedDirectory(path.join(".github", "agents"), copilotAgents);
+checkGeneratedDirectory(path.join(".cursor", "agents"), cursorAgents);
 
 if (adapterEnabled(config, "claude")) {
   check(".claude/settings.json", claudeSettingsText(config));
@@ -80,6 +135,23 @@ if (adapterEnabled(config, "copilot")) {
   checkOwnedAbsent(".github/copilot-instructions.md", "GENERATED FROM harness.config.json");
   checkOwnedAbsent(".github/hooks/harness.json", GENERATED_HOOK_MARKER);
 }
+
+if (adapterEnabled(config, "cursor")) {
+  check(".cursor/rules/harness.mdc", cursorRulesText(config));
+  check(".cursor/hooks.json", cursorHooksText(config));
+} else {
+  checkOwnedAbsent(".cursor/rules/harness.mdc", "GENERATED FROM harness.config.json");
+  checkOwnedAbsent(".cursor/hooks.json", '"_generated"');
+}
+
+if (adapterEnabled(config, "codex")) {
+  check("AGENTS.md", codexInstructionsText(config));
+} else {
+  checkOwnedAbsent("AGENTS.md", "GENERATED FROM harness.config.json");
+}
+
+checkSkillProjection(".claude/skills", adapterEnabled(config, "claude"));
+checkSkillProjection(".agents/skills", portableSkillsEnabled(config));
 
 for (const doc of ["CLAUDE.md", "README.md"]) {
   const actual = fs.readFileSync(path.join(root, doc), "utf8");

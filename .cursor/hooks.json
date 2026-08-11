@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "_generated": "From harness.config.json by scripts/engine/sync.mjs. Advisory only — Cursor cannot refuse a write.",
+  "hooks": {
+    "beforeSubmitPrompt": [
+      {
+        "command": "node .claude/hooks/prompt-duplication-guard.mjs"
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "node .claude/hooks/validate-cypress-rules.mjs"
+      }
+    ],
+    "stop": [
+      {
+        "command": "node .claude/hooks/session-end-reminder.mjs"
+      }
+    ]
+  }
+}

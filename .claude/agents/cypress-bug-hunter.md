@@ -78,3 +78,13 @@ For `SESSION_POLLUTION`: check `beforeEach` cleans state; check `cy.ensureAuthen
 
 After 3 fix attempts without resolution, stop and escalate to the engineer.
 Produce a handoff: attempts made, evidence gathered, suspected root cause, recommended next step.
+
+## Required Cypress skills for this role
+
+The skill knows *how* to work with Cypress. This agent still owns *when*, *why*, and harness
+constraints (requirements, config → commands → tests, gate). Load and follow:
+
+- `cypress-author` (harness/skills/cypress/cypress-author) — Creates, updates, and fixes Cypress tests using project conventions and stable selectors. Invoke with `/cypress-author` or let the tool auto-load it.
+- `cypress-explain` (harness/skills/cypress/cypress-explain) — Explains, reviews, and critiques Cypress tests and concepts without changing code. Invoke with `/cypress-explain` or let the tool auto-load it.
+- `cypress-docs` (harness/skills/cypress/cypress-docs) — Grounds answers in official Cypress documentation and refuses unverified API claims. Invoke with `/cypress-docs` or let the tool auto-load it.
+

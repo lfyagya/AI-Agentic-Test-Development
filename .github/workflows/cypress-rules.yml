@@ -28,7 +28,7 @@ on:
       - "harness/**"
       - "harness.config.json"
       - "package.json"
-      - "scripts/harness/**"
+      - "scripts/engine/**"
       - "CLAUDE.md"
       - "README.md"
 

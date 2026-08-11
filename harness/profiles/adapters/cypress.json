@@ -16,6 +16,12 @@
       },
       "copilot": {
         "enabled": true
+      },
+      "cursor": {
+        "enabled": false
+      },
+      "codex": {
+        "enabled": false
       }
     },
     "context": {
@@ -177,6 +183,33 @@
     "postWrite": ["validate-cypress-rules.mjs"],
     "stop": ["session-end-reminder.mjs"]
   },
+  "$skills": "Official Cypress AI skills, pinned under harness/skills/cypress/*. Full trees (SKILL.md + subskills/references) are the canon. harness:sync projects them to .claude/skills (Claude) and .agents/skills (portable for Copilot/Cursor/Codex) only. roles[] binds each skill to lifecycle agents. Refresh with npm run harness:skills. See docs/architecture/cross-tool-configuration.md.",
+  "skills": [
+    {
+      "name": "cypress-author",
+      "description": "Creates, updates, and fixes Cypress tests using project conventions and stable selectors.",
+      "source": "harness/skills/cypress/cypress-author",
+      "version": "1.0.1",
+      "upstream": "cypress-io/ai-toolkit",
+      "roles": ["BUILD", "DIAGNOSE"]
+    },
+    {
+      "name": "cypress-explain",
+      "description": "Explains, reviews, and critiques Cypress tests and concepts without changing code.",
+      "source": "harness/skills/cypress/cypress-explain",
+      "version": "1.0.1",
+      "upstream": "cypress-io/ai-toolkit",
+      "roles": ["EVALUATE", "DIAGNOSE"]
+    },
+    {
+      "name": "cypress-docs",
+      "description": "Grounds answers in official Cypress documentation and refuses unverified API claims.",
+      "source": "harness/skills/cypress/cypress-docs",
+      "version": "1.0.0",
+      "upstream": "cypress-io/ai-toolkit",
+      "roles": ["DISCOVER", "BUILD", "DIAGNOSE"]
+    }
+  ],
   "permissions": {
     "defaultMode": "plan",
     "allow": [
