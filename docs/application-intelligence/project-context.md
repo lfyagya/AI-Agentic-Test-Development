@@ -4,27 +4,27 @@ Status: `ACTIVE`
 
 ## Ownership and sources
 
-| Field                  | Value                                                                 |
-| ---------------------- | --------------------------------------------------------------------- |
-| Project                | Automation Exercise (public practice AUT) on cypress-automation-boilerplate harness |
-| Accountable owner      | Yagya Bhatta (`yagyabhatta@lftechnology.com`) — pending formal owner confirmation |
-| Application repository | Public site only (no first-party app repo in this worktree): `https://www.automationexercise.com/` |
-| Requirement source     | Owner-authorized UI listing slice + live public site / published API list page |
-| API/schema source      | `https://www.automationexercise.com/api_list` (published practice API descriptions) |
-| Last verified          | `2026-08-13`                                                          |
-| Harness repository     | `github.com/lfyagya/cypress-automation-boilerplate`                  |
+| Field                  | Value                                                                                                                                                                                    |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Project                | Automation Exercise (public practice AUT) on cypress-automation-boilerplate harness                                                                                                      |
+| Accountable owner      | Yagya Bhatta (`yagyabhatta@lftechnology.com`) — pending formal owner confirmation                                                                                                        |
+| Application repository | Public site only (no first-party app repo in this worktree): `https://www.automationexercise.com/`                                                                                       |
+| Requirement source     | Owner-authorized UI listing slice + live public site / published API list page                                                                                                           |
+| API/schema source      | `https://www.automationexercise.com/api_list` (published practice API descriptions)                                                                                                      |
+| Last verified          | `2026-08-13`                                                                                                                                                                             |
+| Harness repository     | `github.com/lfyagya/cypress-automation-boilerplate`                                                                                                                                      |
 | Profile / adapters     | `harness/profiles/projects/cypress-boilerplate.json` — all adapters remain enabled because the team tool set is not yet owner-confirmed (Cursor confirmed for this cloud-agent run only) |
 
 ## Environments and safety
 
-| Environment | Base URL | Data class | Allowed operations | Approval |
-| ----------- | -------- | ---------- | ------------------ | -------- |
+| Environment              | Base URL                                                              | Data class                                             | Allowed operations                                                     | Approval                                                                             |
+| ------------------------ | --------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | Public practice (shared) | `https://www.automationexercise.com` (HTTP 200 verified `2026-08-13`) | Shared public demo data (not owned synthetic fixtures) | Read-only smoke/UI against public pages for the products listing slice | **Approved `2026-08-13`: shared public site is the smoke/e2e target for this slice** |
-| Development | `<unknown — no private AUT env provided>` | Synthetic | `<unknown>` | Owner |
-| QA | `<unknown — no private AUT env provided>` | Synthetic | `<unknown>` | Owner |
-| Production | Same public hostname as above if used as “prod-like” | Shared public demo — no harness-owned test data | Read-only smoke only | Owner |
+| Development              | `<unknown — no private AUT env provided>`                             | Synthetic                                              | `<unknown>`                                                            | Owner                                                                                |
+| QA                       | `<unknown — no private AUT env provided>`                             | Synthetic                                              | `<unknown>`                                                            | Owner                                                                                |
+| Production               | Same public hostname as above if used as “prod-like”                  | Shared public demo — no harness-owned test data        | Read-only smoke only                                                   | Owner                                                                                |
 
-### BASE_URL (non-secret) — recorded, not wired
+### BASE_URL (non-secret) — approved and wired
 
 - Verified public origin: `https://www.automationexercise.com` (trailing slash optional; HTML routes resolve under this host).
 - Owner authorized treating `BASE_URL` as a **non-secret** so smoke/UI and e2e can run in CI without a GitHub Actions secret for the URL.
@@ -35,13 +35,16 @@ Status: `ACTIVE`
 ## Contracts to verify
 
 - Authentication and roles: Products listing is reachable without login (navbar includes Signup / Login; `/products` returned 200 with product markup for an unauthenticated GET). No role model verified beyond anonymous visitor for this slice.
-- Stable selector attribute: **None** — live HTML has no `data-testid` / `data-cy`. Candidate CSS/id hooks observed on `/products` are listed in the products module context for **DISCOVER** to contract into `cypress/configs/ui/**` (not invented into configs during GATHER).
+- Stable selector attribute: **None** — live HTML has no `data-testid` / `data-cy`. The verified
+  fallback selectors for the products listing are contracted in
+  `cypress/configs/ui/products/products.ui.js`; their structural risk is documented there.
 - Supported browsers: `<unknown>` — harness default only; AUT browser matrix not published on the pages inspected.
 - API dependencies (optional for UI listing): Published `GET https://automationexercise.com/api/productsList` (also reachable under `www` with a normal browser User-Agent) returns `responseCode: 200` and a `products` array; **not** required for the read-only UI listing requirement.
 - Test-data creation and cleanup: Not required for read-only listing smoke. Mutating cart/search/account flows stay out of scope until synthetic/shared-data rules are approved.
 - External integrations: YouTube Video Tutorials nav link (third-party); optional Cypress Cloud — must not be baseline-required.
 - Accessibility or regulatory obligations: `<unknown>`.
-- CI lanes and branch policy: Existing workflow has smoke/e2e jobs; AUT `BASE_URL` non-secret wiring still pending (see above).
+- CI lanes and branch policy: Existing workflow has smoke/e2e jobs. Both use the public non-secret
+  `BASE_URL` by default, with optional `secrets.BASE_URL` / `vars.BASE_URL` overrides.
 
 ## Mutation policy
 
@@ -51,21 +54,21 @@ Status: `ACTIVE`
 
 ## Modules
 
-| Module | Business owner | Risk | Context status |
-| ------ | -------------- | ---- | -------------- |
-| `products` | Yagya Bhatta (pending confirmation) | Shared public demo can change catalog contents/order; selectors are class/id based | `DRAFT` — listing slice verified from live site |
+| Module     | Business owner                      | Risk                                                                               | Context status                                   |
+| ---------- | ----------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `products` | Yagya Bhatta (pending confirmation) | Shared public demo can change catalog contents/order; selectors are class/id based | `ACTIVE` — listing slice verified and contracted |
 
 ## Unknowns and decisions
 
-| Item | Why it matters | Owner | Status |
-| ---- | -------------- | ----- | ------ |
-| Formal accountable owner / business owner for Automation Exercise automation | Approval of draft → active and mutation boundaries | Yagya Bhatta | Open — email from cloud-agent run used as interim contact |
-| AI tools the team will actually use (claude / copilot / cursor / codex) | Adapter projections and write-time hooks | Owner | Open — Cursor confirmed for this run; all four adapters left enabled (silence → everything wired). Note: Claude/Cursor/Copilot can refuse violating writes via shared hook scripts in this repo; Codex gate is `npm run verify` + pre-push |
-| Whether CI may hit the public site on every PR | Cost, flake, and courtesy toward a shared practice site | Owner | Open |
-| Exact assertion strength for catalog size (e.g. “≥1 card” vs “exactly N”) | N=34 observed on `2026-08-13` for both UI wrappers and API `products.length`, but shared catalogs can change | Owner | Open — draft requirement uses non-empty grid, not a hard count |
-| Selector strategy approval (class/id vs role/name) | No test attributes on AUT; locator contract prefers role/name | Owner + DISCOVER | Open — blocks durable config constants |
-| Private/staging AUT mirror | Prefer non-shared env for future mutations | Owner | Unknown / absent |
-| Rename harness profile from `cypress-boilerplate` to an Automation Exercise key | Identity clarity vs boilerplate reuse | Owner | Open — not changed during GATHER |
+| Item                                                                            | Why it matters                                                                                               | Owner            | Status                                                                                                                                                                                                                                     |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Formal accountable owner / business owner for Automation Exercise automation    | Approval of draft → active and mutation boundaries                                                           | Yagya Bhatta     | Open — email from cloud-agent run used as interim contact                                                                                                                                                                                  |
+| AI tools the team will actually use (claude / copilot / cursor / codex)         | Adapter projections and write-time hooks                                                                     | Owner            | Open — Cursor confirmed for this run; all four adapters left enabled (silence → everything wired). Note: Claude/Cursor/Copilot can refuse violating writes via shared hook scripts in this repo; Codex gate is `npm run verify` + pre-push |
+| Whether CI may hit the public site on every PR                                  | Cost, flake, and courtesy toward a shared practice site                                                      | Owner            | Resolved `2026-08-13` — approved for this read-only smoke slice                                                                                                                                                                            |
+| Exact assertion strength for catalog size (e.g. “≥1 card” vs “exactly N”)       | N=34 observed on `2026-08-13` for both UI wrappers and API `products.length`, but shared catalogs can change | Owner            | Resolved `2026-08-13` — assert ≥1 card, never a hard count                                                                                                                                                                                 |
+| Selector strategy approval (class/id vs role/name)                              | No test attributes on AUT; locator contract prefers role/name                                                | Owner + DISCOVER | Resolved `2026-08-13` — visible text for heading; centralized verified CSS fallback for grid/cards/names                                                                                                                                   |
+| Private/staging AUT mirror                                                      | Prefer non-shared env for future mutations                                                                   | Owner            | Unknown / absent                                                                                                                                                                                                                           |
+| Rename harness profile from `cypress-boilerplate` to an Automation Exercise key | Identity clarity vs boilerplate reuse                                                                        | Owner            | Open — not changed during GATHER                                                                                                                                                                                                           |
 
 ## Approval
 

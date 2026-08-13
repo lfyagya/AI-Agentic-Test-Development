@@ -3,8 +3,8 @@
 
 describe("Products listing", () => {
   it(
-    "[AE-PRODUCTS-001] anonymous visitor opens the products route → sees a non-empty All Products grid",
-    { tags: ["@AE-PRODUCTS-001", "@smoke", "@P0"] },
+    "[AE-PRODUCTS-002] anonymous visitor opens the products route → sees a non-empty All Products grid",
+    { tags: ["@AE-PRODUCTS-002", "@smoke", "@P0"] },
     () => {
       cy.visitProducts();
       cy.assertProductsListingVisible(1);

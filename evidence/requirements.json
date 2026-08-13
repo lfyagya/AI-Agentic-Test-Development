@@ -2,7 +2,7 @@
   "version": 1,
   "requirements": [
     {
-      "id": "AE-PRODUCTS-001",
+      "id": "AE-PRODUCTS-002",
       "module": "products",
       "title": "anonymous visitor sees the All Products listing grid",
       "acceptanceCriteria": [
