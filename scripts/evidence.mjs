@@ -327,11 +327,6 @@ export function buildEvidence({
       entry.attempt === 1 &&
       entry.failureClass !== "ENV",
   );
-  const effortEntries = readJsonLines(
-    path.join(evidenceRoot, "effort-log.jsonl"),
-  ).filter(
-    (entry) => entry.accepted === true && Number.isFinite(entry.minutes),
-  );
   const covered = coverage.filter((entry) => entry.passing).length;
   const runSummaries = loadRunSummaries(evidenceRoot);
 
@@ -388,20 +383,6 @@ export function buildEvidence({
         ),
       },
       M3: { name: "new-test flake rate", ...flakeMetric(runSummaries, now) },
-      M4: {
-        name: "QA effort per accepted scenario",
-        value:
-          effortEntries.length === 0
-            ? null
-            : effortEntries.reduce((total, entry) => total + entry.minutes, 0) /
-              effortEntries.length,
-        unit: "person-minutes",
-        denominator: effortEntries.length,
-        status: effortEntries.length === 0 ? "unavailable" : "available",
-        ...(effortEntries.length === 0
-          ? { reason: "No accepted-scenario effort evidence" }
-          : {}),
-      },
       M5: {
         name: "requirement-to-test coverage",
         ...ratio(covered, activeRequirements.length, "No active requirements"),

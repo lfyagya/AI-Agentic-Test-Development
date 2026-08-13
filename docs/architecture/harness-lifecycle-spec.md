@@ -75,8 +75,10 @@ The metrics contract is:
 - M1 accepted-test rate from first-submission gate evidence.
 - M2 first-pass CI rate from first-attempt PR evidence, excluding classified environment failures.
 - M3 new-test flake rate after five observations on unchanged code.
-- M4 person-minutes per accepted scenario from the optional effort log.
 - M5 active requirements with a passing mapped test divided by all active requirements.
+
+Metric ids are stable identifiers, not a sequence. `M4` (QA effort per accepted scenario) was a
+manual-entry metric nothing consumed and has been retired; its id is not reused.
 
 ## Empty-state invariant
 
