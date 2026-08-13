@@ -68,7 +68,9 @@ evidence/
 ```
 
 `run-summary.json` is the only runner-neutral execution input downstream. Native reporter shapes
-do not leak into metrics.
+do not leak into metrics. The recorded ledgers, `unavailable`-vs-`zero` rule, and the recording
+commands are documented once in [`../START-HERE.md`](../START-HERE.md) §7; this section states only
+the contract.
 
 The metrics contract is:
 
