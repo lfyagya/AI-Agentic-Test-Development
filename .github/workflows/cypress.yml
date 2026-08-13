@@ -1,14 +1,14 @@
 name: Cypress Tests
 
-# BLOCKER: GitHub account billing lock — automatic Actions minutes are unavailable.
-# Intended activation (restore when billing is fixed):
-#   on:
-#     pull_request:
-#     push:
-#       branches: [main]
-#     workflow_dispatch:  # keep the inputs below
-# Until then, only manual runs work. Do not re-enable pull_request/push while locked.
+# BLOCKER: GitHub account billing lock — automatic Actions minutes are unavailable, so only manual
+# runs work today. The job logic already keys off github.event_name (smoke on PR; smoke + e2e on
+# push to main), so restoring automatic CI once billing is fixed is a single step: uncomment the two
+# trigger blocks in `on:` below. Do not re-enable them while the account is locked.
 on:
+  # pull_request:
+  #   branches: [main]
+  # push:
+  #   branches: [main]
   workflow_dispatch:
     inputs:
       environment:
