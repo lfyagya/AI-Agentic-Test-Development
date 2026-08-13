@@ -31,6 +31,9 @@ Status: `ACTIVE` (products API and listing UI)
   non-empty `products[]`; active requirement `AE-PRODUCTS-001`.
 - Public products UI: `/products` renders `All Products` and a non-empty visible card listing;
   active requirement `AE-PRODUCTS-002`.
+- Public search API: `POST /api/searchProduct` (url-encoded `search_product`) returns HTTP `200`,
+  payload `responseCode: 200`, and a non-empty matching `products[]`; a read-only query in the e2e
+  tier; active requirement `AE-PRODUCTS-003`.
 - Stable test attributes: none. UI config centralizes verified CSS fallbacks; visible text is used
   where stable.
 - Browser evidence: Chrome and bundled Electron runs are supported by the harness; the UI smoke was
@@ -39,8 +42,8 @@ Status: `ACTIVE` (products API and listing UI)
 ## Mutation policy
 
 - Shared public smoke is read-only.
-- Product/brand reads and products listing observation are allowed.
-- Cart, search submission, account operations, and other mutations are not active in this scope.
+- Product/brand reads, products listing observation, and the read-only product search API are allowed.
+- Cart, account operations, and other state-changing mutations are not active in this scope.
 
 ## Modules
 

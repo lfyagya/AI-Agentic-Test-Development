@@ -13,17 +13,18 @@ Status: `ACTIVE` (catalog API and products listing UI)
 
 ## Business intent
 
-Anonymous visitors must be able to retrieve and view a non-empty product catalog. The API smoke
-detects transport/payload/shape failures, while the UI smoke detects a missing heading or empty,
-non-visible card grid. Search, filters, product detail, cart, and authentication remain out of scope.
+Anonymous visitors must be able to retrieve and view a non-empty product catalog, and search it by
+term. The API smoke detects transport/payload/shape failures, the UI smoke detects a missing heading
+or empty non-visible card grid, and the e2e search regression detects a broken search endpoint.
+Filters, product detail, cart, and authentication remain out of scope.
 
 ## Actors and safety
 
-| Actor             | Allowed behavior                                                   | Preconditions                   | Denied behavior       |
-| ----------------- | ------------------------------------------------------------------ | ------------------------------- | --------------------- |
-| Anonymous visitor | Read `GET /api/productsList`; open `/products`; view product cards | Public site reachable; no login | All mutation in smoke |
+| Actor             | Allowed behavior                                                                                 | Preconditions                   | Denied behavior       |
+| ----------------- | ------------------------------------------------------------------------------------------------ | ------------------------------- | --------------------- |
+| Anonymous visitor | Read `GET /api/productsList`; open `/products`; view product cards; `POST /api/searchProduct` (read-only query) | Public site reachable; no login | All mutation in smoke |
 
-Both active requirements are read-only and create no test data, so isolation and cleanup are not
+All three active requirements are read-only and create no test data, so isolation and cleanup are not
 applicable. Credentials, PII, and payment data remain forbidden.
 
 ## Verified states
@@ -32,6 +33,7 @@ applicable. Credentials, PII, and payment data remain forbidden.
 | ----------------- | ----------------------- | ---------------- | -------------------------------------------------------------------------------------------------------- |
 | `AE-PRODUCTS-001` | `GET /api/productsList` | Catalog returned | HTTP `200`; payload `responseCode: 200`; non-empty `products[]`; every product has `id`, `name`, `price` |
 | `AE-PRODUCTS-002` | Open `/products`        | Listing shown    | `All Products` heading; visible listing region; at least one card and visible non-empty product name     |
+| `AE-PRODUCTS-003` | `POST /api/searchProduct` | Matches returned | HTTP `200`; payload `responseCode: 200`; non-empty `products[]`; every product has `id`, `name`, `price` |
 
 ### API catalog {#api-catalog}
 
@@ -40,6 +42,19 @@ applicable. Credentials, PII, and payment data remain forbidden.
 - `PRODUCTS_API.LIST` owns the method, endpoint, alias, and expected status in
   `cypress/configs/api/modules/products/products.api.js`.
 - Some non-browser clients receive HTTP `403`; the Cypress request path was verified live.
+
+### API search {#api-search}
+
+- Published endpoint: `POST https://automationexercise.com/api/searchProduct` ("API 5: POST To Search
+  Product" in the public api_list), verified live 2026-08-13.
+- Requires a url-encoded `search_product` form field. A JSON body returns `responseCode: 400`
+  ("search_product parameter is missing"); the form body returns HTTP `200` with
+  `{ "responseCode": 200, "products": [...] }`.
+- Read-only: the search queries the catalog and mutates no shared state. It lives in the **e2e** tier
+  because it is a POST, and the smoke tier forbids POST/PUT/PATCH/DELETE — this is the concrete
+  smoke-read-only vs e2e-mutation-allowed boundary.
+- `PRODUCTS_API.SEARCH` owns the method, endpoint, alias, and expected status in
+  `cypress/configs/api/modules/products/products.api.js`.
 
 ### Listing grid {#listing-grid}
 
