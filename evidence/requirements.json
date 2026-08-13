@@ -38,6 +38,27 @@
       "path": "positive",
       "status": "active",
       "source": "docs/application-intelligence/products/module-context.md#listing-grid"
+    },
+    {
+      "id": "AE-PRODUCTS-003",
+      "module": "products",
+      "title": "product search API returns matching products for a search term",
+      "acceptanceCriteria": [
+        "POST /api/searchProduct with a search term responds with HTTP 200",
+        "The response body reports responseCode 200 with a non-empty products array",
+        "Every returned product exposes id, name, and price fields"
+      ],
+      "preconditions": [
+        "The Automation Exercise public search API is reachable",
+        "The search term is a url-encoded search_product form field"
+      ],
+      "expectedOutcome": "The search endpoint returns HTTP 200 with a non-empty, well-formed list of products for the term",
+      "type": "REGRESSION",
+      "priority": "P1",
+      "tier": "e2e",
+      "path": "positive",
+      "status": "active",
+      "source": "docs/application-intelligence/products/module-context.md#api-search"
     }
   ]
 }

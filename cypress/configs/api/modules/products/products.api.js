@@ -14,4 +14,14 @@ export const PRODUCTS_API = Object.freeze({
     alias: "productsList",
     expectedStatus: 200,
   }),
+  // "API 5: POST To Search Product" (https://automationexercise.com/api_list), verified live
+  // 2026-08-13. A read-only search: it queries the catalog and mutates no state, but because it is a
+  // POST it belongs in the e2e tier — the smoke tier forbids POST/PUT/PATCH/DELETE. The endpoint
+  // requires a url-encoded `search_product` field; a JSON body returns responseCode 400.
+  SEARCH: Object.freeze({
+    method: "POST",
+    endpoint: "https://automationexercise.com/api/searchProduct",
+    alias: "searchProduct",
+    expectedStatus: 200,
+  }),
 });

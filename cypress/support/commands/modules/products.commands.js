@@ -2,6 +2,7 @@
  * @fileoverview Products API and listing UI commands.
  *
  * cy.requestProductCatalog()             — request the public read-only catalog.
+ * cy.searchProductCatalog(term)          — POST a search term to the public search API (e2e tier).
  * cy.visitProducts()                     — open the All Products listing route.
  * cy.assertProductsListingVisible(min)   — assert heading + non-empty visible card grid.
  */
@@ -11,6 +12,14 @@ import { PRODUCTS_UI } from "@configs/ui/modules/products/products.ui.js";
 
 Cypress.Commands.add("requestProductCatalog", () => {
   return cy.apiRequest(PRODUCTS_API.LIST);
+});
+
+Cypress.Commands.add("searchProductCatalog", (term) => {
+  return cy.apiRequest(
+    PRODUCTS_API.SEARCH,
+    { search_product: term },
+    { form: true },
+  );
 });
 
 Cypress.Commands.add("visitProducts", () => {
