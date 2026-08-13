@@ -118,9 +118,9 @@
   ],
   "agents": [
     {
-      "name": "project-bootstrapper",
-      "role": "GATHER",
-      "description": "Derive an approved project and application contract from verified sources before any test generation.",
+      "name": "cypress-intake",
+      "role": "INTAKE",
+      "description": "Derive verified project context and approved requirements, and capture observed selectors and routes into config constants — before any spec is written.",
       "model": "sonnet",
       "tools": [
         "Read",
@@ -130,22 +130,7 @@
         "Glob",
         "Bash"
       ],
-      "when": "Start a new project or module from no existing automation context"
-    },
-    {
-      "name": "cypress-discovery",
-      "role": "DISCOVER",
-      "description": "Capture verified selectors, routes, and flow steps from the running application into config constants.",
-      "model": "sonnet",
-      "tools": [
-        "Read",
-        "Write",
-        "Edit",
-        "Grep",
-        "Glob",
-        "Bash"
-      ],
-      "when": "Observe an unknown module and turn what you see into config constants"
+      "when": "Start a new project or module, or turn unknown application behavior into context and config constants"
     },
     {
       "name": "cypress-generator",
@@ -174,7 +159,7 @@
         "Bash",
         "Edit"
       ],
-      "when": "Debugging a failing test locally"
+      "when": "Debugging a reproducible test failure locally"
     },
     {
       "name": "pre-merge-qa-gate",
@@ -189,33 +174,6 @@
       ],
       "when": "Evaluate supplied diff and verification evidence — PASS / PASS_WITH_ACTIONS / BLOCK",
       "readOnlyRationale": "Read/search only by design: the gate cannot edit files or execute shell commands, so the builder never grades its own output."
-    },
-    {
-      "name": "pr-creator",
-      "role": "SHIP",
-      "description": "Create a pull request with the repository's standard generated description.",
-      "model": "sonnet",
-      "tools": [
-        "Read",
-        "Grep",
-        "Glob",
-        "Bash"
-      ],
-      "when": "Opening a pull request with a generated description"
-    },
-    {
-      "name": "workflow-maintainer",
-      "role": "MAINTAIN",
-      "description": "Simplify repository workflow scripts, agents, and docs without duplicating ownership.",
-      "model": "sonnet",
-      "tools": [
-        "Read",
-        "Grep",
-        "Glob",
-        "Bash",
-        "Edit"
-      ],
-      "when": "Simplify workflow scripts, agents, or docs"
     }
   ],
   "hooks": {
@@ -262,7 +220,7 @@
       "version": "1.0.0",
       "upstream": "cypress-io/ai-toolkit",
       "roles": [
-        "DISCOVER",
+        "INTAKE",
         "BUILD",
         "DIAGNOSE"
       ]

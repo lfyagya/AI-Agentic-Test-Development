@@ -1,9 +1,12 @@
 # Start Here — The Complete Cypress Harness Guide
 
-This repository is an **empty, application-agnostic QA harness**. It contains no application, no
-requirements, no selectors, no credentials, and no tests. You point it at a project; it gathers
-verified context, builds requirement-backed tests, grades them with an independent gate, executes
-them, and emits evidence and metrics.
+This repository is the **reference instantiation** of the Cypress AI harness. It ships harness
+policy plus a small Automation Exercise `products` module: two active requirements
+(`AE-PRODUCTS-001`, `AE-PRODUCTS-002`), configs, commands, and smoke specs. The lifecycle below is
+how you extend it — or how a fork starts a new project from a blank profile.
+
+Agents still must not invent application facts. Verified behavior lives in
+`docs/application-intelligence/**` and `evidence/requirements.json`.
 
 This is the only document you need. It is self-contained.
 
@@ -14,7 +17,7 @@ This is the only document you need. It is self-contained.
 | **Spec glob**    | `cypress/tests/**/*.cy.{js,ts}`        |
 | **Language**     | JavaScript, TypeScript opt-in per file |
 | **Rules**        | 9 — 8 blocking, 1 graded               |
-| **Agent roles**  | 7                                      |
+| **Agent roles**  | 4                                      |
 
 ---
 
@@ -63,7 +66,7 @@ the write.
 
 ### 2.1 Prerequisites
 
-- Node.js 20+ and npm
+- Node.js 22+ and npm
 - Git
 - **No paid service is required.** Cypress Cloud and any tracker integration are optional
   enhancements, never baseline dependencies.
@@ -74,7 +77,7 @@ the write.
 npm ci
 ```
 
-### 2.3 Verify the empty harness
+### 2.3 Verify this reference clone
 
 This is the acceptance test for a correct installation.
 
@@ -83,18 +86,21 @@ npm run verify
 ```
 
 That chain is `harness:check` → `harness:test` → `harness:format:check` → `check:rules` →
-`typecheck` → `npm test` (with `lint` via `pretest`) → `evidence:build`. Run them individually to
-isolate a failure.
+`check:requirements` → `typecheck` → `npm test` (with `lint` via `pretest`) → `evidence:build`.
+Run them individually to isolate a failure.
 
-Expected:
+Expected for this repository (two products smoke specs):
 
 ```text
-[cypress] No all specs yet; bootstrap state is valid.
-[evidence] bootstrap: 0 passed, 0 failed, 0 traceability gap(s)
+[evidence] ... status ready (or equivalent coverage for AE-PRODUCTS-001 / AE-PRODUCTS-002)
 ```
 
-**Zero tests passing is the correct result.** The harness ships empty by design. If this fails, the
-installation is broken — do not start intake.
+`npm test` launches Cypress against the public Automation Exercise target. If verify fails before
+you change anything, the installation or network path is broken — do not start new intake.
+
+For a **brand-new empty profile** (zero requirements / zero tests), the runner prints
+`[cypress] No all specs yet; bootstrap state is valid.` and evidence reports `bootstrap` with
+unavailable metrics — that empty state is still correct for intake.
 
 ### 2.4 Starting a brand-new project from zero
 
@@ -111,9 +117,10 @@ cp harness/profiles/projects/_template.json harness/profiles/projects/<key>.json
 npm run harness:compose && npm run harness:sync && npm run harness:check
 ```
 
-You now have the full seven-role roster, every rule enforced at write time, enabled AI adapters
-wired, and Cypress skills projected to `.claude/skills` + `.agents/skills` — with no tests. See
-[`harness/profiles/README.md`](../harness/profiles/README.md) and
+You now have the full four-role roster, every rule enforced at write time, enabled AI adapters
+wired, and Cypress skills projected to `.claude/skills` + `.agents/skills`. A brand-new profile has
+no tests yet; this repository's `cypress-boilerplate` profile is already a reference instantiation
+with products smoke coverage. See [`harness/profiles/README.md`](../harness/profiles/README.md) and
 [cross-tool-configuration.md](architecture/cross-tool-configuration.md).
 
 After compose/sync, refresh or confirm skills:
@@ -183,7 +190,7 @@ flowchart TD
 
 Four AI tools are supported — Claude Code, Copilot, Cursor, Codex — and each project's profile enables
 the subset the team uses. Disabling one deletes its projection on the next sync. The full per-tool
-matrix and why only Claude gets a blocking hook is in
+hook and enforcement matrix is in
 [cross-tool-configuration.md](architecture/cross-tool-configuration.md).
 
 After any policy change:
@@ -312,9 +319,8 @@ without false positives.
 
 ```mermaid
 flowchart LR
-    G["<b>GATHER</b><br/>project-bootstrapper"] --> S["<b>SPECIFY</b><br/>human approves"]
-    S --> D["<b>DISCOVER</b><br/>cypress-discovery"]
-    D --> B["<b>BUILD</b><br/>cypress-generator"]
+    G["<b>INTAKE</b><br/>cypress-intake"] --> S["<b>SPECIFY</b><br/>human approves"]
+    S --> B["<b>BUILD</b><br/>cypress-generator"]
     B --> GU["<b>GUARD</b><br/>local checks"]
     GU --> E{"<b>EVALUATE</b><br/>pre-merge-qa-gate<br/><i>read-only</i>"}
     E -- "BLOCK — max 3" --> B
@@ -322,12 +328,16 @@ flowchart LR
     X -- failure --> DI["<b>DIAGNOSE</b><br/>cypress-bug-hunter"]
     DI --> B
     X -- pass --> M["<b>MEASURE</b><br/>evidence.mjs"]
-    M --> SH["<b>SHIP</b><br/>pr-creator"]
+    M --> SH["<b>SHIP</b><br/><i>parent workflow</i>"]
 
     style S fill:#e6f4ea,stroke:#34a853,color:#111
     style E fill:#fef7e0,stroke:#f9ab00,color:#111
     style DI fill:#fce8e6,stroke:#ea4335,color:#111
 ```
+
+INTAKE folds context-gathering and application discovery into one agent. SHIP (opening the PR) and
+harness maintenance are handled by whoever drives the workflow — a human or the parent agent — not by
+dedicated agents.
 
 The `EVALUATE → BUILD` repair loop carries a declared bound, `loops.gateRepairLimit` (3), and it is
 worth being precise about what that is: **an instruction, not a counter.** The limit is validated when
@@ -340,15 +350,22 @@ it prevented rather than recorded, the enforcement point is whatever drives the 
 
 ### 5.1 The roster
 
-| Role     | Agent                  | Model  | Why it is separate                                        |
-| -------- | ---------------------- | ------ | --------------------------------------------------------- |
-| GATHER   | `project-bootstrapper` | sonnet | Verified context before any test exists                   |
-| DISCOVER | `cypress-discovery`    | sonnet | Observes the app; never decides intent                    |
-| BUILD    | `cypress-generator`    | sonnet | Owns authoring for exactly one requirement                |
-| DIAGNOSE | `cypress-bug-hunter`   | opus   | Root cause + compliant fix; hardest reasoning             |
-| EVALUATE | `pre-merge-qa-gate`    | opus   | **Read-only. A builder must never grade its own output.** |
-| SHIP     | `pr-creator`           | sonnet | PR with the standard generated description                |
-| MAINTAIN | `workflow-maintainer`  | sonnet | Simplify without duplicating ownership                    |
+The roster is a set of bounded routes, not four agents to invoke for every change. Use the parent
+workflow for routine work and invoke only the specialist whose `when` condition matches: INTAKE once
+per new project/module or when application behavior is unknown, and DIAGNOSE only after a reproducible
+failure. BUILD and the independent read-only EVALUATE gate are the normal test-authoring separation.
+Invoke at most one specialist per task. This keeps the safety boundary without paying the coordination
+cost of a ceremonial multi-agent pipeline.
+
+| Role     | Agent                 | Model  | Why it is separate                                        |
+| -------- | --------------------- | ------ | --------------------------------------------------------- |
+| INTAKE   | `cypress-intake`      | sonnet | Verified context, requirements, and observed config before any test exists |
+| BUILD    | `cypress-generator`   | sonnet | Owns authoring for exactly one requirement                |
+| DIAGNOSE | `cypress-bug-hunter`  | opus   | Root cause + compliant fix; hardest reasoning             |
+| EVALUATE | `pre-merge-qa-gate`   | opus   | **Read-only. A builder must never grade its own output.** |
+
+Shipping the PR and maintaining the harness are not agents — the parent workflow (a human or the
+driving agent) owns them, using `npm run verify` and the standard PR template directly.
 
 `pre-merge-qa-gate` has `permissionMode: plan` and `tools: [Read, Grep, Glob]` — no Write, no Bash.
 That restriction is the entire reason the gate is trustworthy, and it is **declared in config**, not
@@ -374,9 +391,9 @@ When two sources disagree, the agent stops and reports the conflict. It does not
 
 Section 2.3. Do not skip it.
 
-### Step 1 — GATHER verified project context
+### Step 1 — INTAKE: verified project context
 
-Invoke `project-bootstrapper`:
+Invoke `cypress-intake`:
 
 ```text
 Start project intake for <project>.
@@ -414,9 +431,9 @@ files** — a Claude-only team stops carrying `.github/agents/`, `copilot-instru
 adapter must stay enabled; composing with none is refused, because it would emit a config whose rules
 reach no tool at all.
 
-Be clear-eyed about the trade: **only Claude Code can refuse a violating write** (its `PreToolUse`
-hook). Copilot, Cursor, and Codex receive the same rules as guidance — Cursor has no pre-edit event
-and Codex has no hooks at all — so their real gate is `npm run verify` and the pre-push hook (§4). Run
+Claude Code, Copilot, and Cursor can refuse a violating write through their generated pre-tool hooks.
+Codex has no equivalent hook API, so its real gate is `npm run verify` and the pre-push hook (§4).
+Those floor checks still cover human edits and anything a tool hook misses. Run
 `npm run harness:skills` to install the pinned official Cypress skills into whichever tools are
 present. Full detail: [cross-tool-configuration.md](architecture/cross-tool-configuration.md).
 
@@ -456,11 +473,12 @@ The registry is only `evidence/requirements.json` — do not create a parallel t
 `acceptanceCriteria` or `preconditions`, or uses a value outside `SMOKE|REGRESSION` / `P0|P1|P2` /
 `smoke|e2e|ddt`. Ids must be unique. Automate P0 first; keep unclear items in `draft`.
 
-### Step 3 — DISCOVER, only if selectors are unknown
+### Step 3 — Discover selectors, only if they are unknown
 
-Invoke `cypress-discovery`. It uses `npm run cy:open` — the Selector Playground and command-log
-time-travel. Cypress has no `codegen`. Output is **config constants only**; writing a command or spec
-here bypasses the BUILD role.
+`cypress-intake` also owns discovery. When a module's selectors or routes are unknown, have it use
+`npm run cy:open` — the Selector Playground and command-log time-travel (Cypress has no `codegen`) —
+and capture **config constants only**; writing a command or spec here bypasses the BUILD role. Skip
+this step for a module whose config already exists.
 
 ### Step 4 — BUILD one requirement
 
@@ -501,11 +519,14 @@ Supply `pre-merge-qa-gate` with the diff and the exact command output from Step 
 npm run cy:run:tag -- --env grepTags=@PAY-CHECKOUT-001
 ```
 
-| Verdict             | Meaning                       |
-| ------------------- | ----------------------------- |
-| `PASS`              | merge-ready                   |
-| `PASS_WITH_ACTIONS` | merge-ready; named follow-ups |
-| `BLOCK`             | do not merge; reasons given   |
+| Verdict             | Meaning                                                                 |
+| ------------------- | ----------------------------------------------------------------------- |
+| `PASS`              | merge-ready; no required follow-ups                                     |
+| `PASS_WITH_ACTIONS` | merge-ready **now**; named non-blocking follow-ups only                 |
+| `BLOCK`             | do not merge; anything that must be fixed first is a blocker, not an action |
+
+`PASS_WITH_ACTIONS` is not "merge after the list is done." If work must complete before merge, the
+verdict is `BLOCK`.
 
 The gate scores each changed test from 100 using the rubric in `qa-automation-foundations.md`. **80 is
 necessary but not sufficient** — a safety or architecture blocker overrides any score.
@@ -628,6 +649,18 @@ npm run evidence:record -- gate --requirement PAY-CHECKOUT-001 --attempt 1 --ver
 ```
 
 ```bash
+npm run evidence:record -- gate --requirement PAY-CHECKOUT-001 --attempt 1 \
+  --verdict PASS_WITH_ACTIONS \
+  --actions "docs: align CI artifact names|chore: remove obsolete allowlist entry" \
+  --resolution "tracked in maintainer backlog"
+```
+
+`PASS` and `PASS_WITH_ACTIONS` both count as accepted for M1. Named `--actions` (pipe-separated) are
+required for `PASS_WITH_ACTIONS`, preserved on the gate ledger row, and copied into
+`metrics.json` as `gateFollowUps`. Optional `--resolution` is a short human note, not a second
+verdict.
+
+```bash
 npm run evidence:record -- effort --requirement PAY-CHECKOUT-001 --minutes 45
 ```
 
@@ -663,7 +696,7 @@ run whose jobs executed zero steps is classified `ENV`.
 
 ## 8. CI
 
-Optional. Gates on the same commands you run locally:
+Optional when Actions is available. Gates on the same commands you run locally:
 
 ```yaml
 - run: npm ci
@@ -676,8 +709,17 @@ Optional. Gates on the same commands you run locally:
 - run: npm run evidence:build
 ```
 
-Then upload the report and `evidence/`. Recommended split: **smoke on PR, full e2e on main.** Set
-`TEST_TIER` and `RUN_TRIGGER` so the run summary records which lane produced the evidence.
+Then upload the HTML report, screenshots (on failure), and `evidence/`. Videos are off
+(`video: false` in `cypress.config.js`) unless you deliberately enable them. Recommended split when
+automatic triggers are active: **smoke on PR, full e2e on main.** Set `TEST_TIER` and `RUN_TRIGGER`
+so the run summary records which lane produced the evidence.
+
+### Billing lock (current)
+
+**Blocker:** the GitHub account is billing-locked, so automatic `pull_request` / `push` workflows do
+not run. Both `cypress.yml` and `cypress-rules.yml` accept only `workflow_dispatch` until that is
+fixed. The intended `pull_request` / `push` triggers are commented at the top of each workflow file —
+restore them when billing is restored; do not re-enable while the lock remains.
 
 Actions is **free with unlimited standard-runner minutes on public repositories**; private repos draw
 on a monthly allowance. An account-level billing lock blocks Actions on any repo regardless of

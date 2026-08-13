@@ -1,15 +1,19 @@
 # Cypress Automation Boilerplate
 
-A clean, application-agnostic Cypress harness using:
+A Cypress AI harness using:
 
 ```text
 Verified context → Approved requirement → Config → Commands → Tests → Gate → Run → Metrics
 ```
 
-The repository intentionally ships with zero application requirements and zero tests. AI agents
-derive project-specific automation from source evidence; they do not adapt a hidden demo project.
+This repository is the **reference instantiation** of the Cypress adapter: harness policy plus a
+small Automation Exercise `products` module with two active requirements and smoke tests
+(`AE-PRODUCTS-001`, `AE-PRODUCTS-002`). Forks start from that pattern; agents must still derive new
+automation from verified sources rather than inventing application facts.
 
 ## Start
+
+Requires **Node.js 22+**.
 
 ```bash
 npm ci
@@ -21,10 +25,9 @@ npm test
 npm run evidence:build
 ```
 
-An empty clone is healthy: the test command reports that no specs exist and metrics report the
-bootstrap state.
-
-Continue with [From No Project to Test Metrics](docs/START-HERE.md).
+A healthy clone runs the two products smoke specs and builds evidence with requirement coverage.
+Empty-harness bootstrap (zero requirements / zero tests) remains a valid state for a brand-new
+profile — see [docs/START-HERE.md](docs/START-HERE.md).
 
 ## Architecture
 
@@ -40,13 +43,15 @@ Continue with [From No Project to Test Metrics](docs/START-HERE.md).
 
 ## Agent lifecycle
 
+Four agents, invoked by condition — not a fixed pipeline. Shipping the PR and maintaining the harness
+are the parent workflow's job, not separate agents. Invoke at most one specialist per task.
+
 | Role | Agent | Purpose |
 | --- | --- | --- |
-| GATHER | `project-bootstrapper` | Derive verified project context and requirements |
+| INTAKE | `cypress-intake` | Derive verified context and requirements, and capture observed selectors/routes into config |
 | BUILD | `cypress-generator` | Implement one active requirement |
-| EVALUATE | `pre-merge-qa-gate` | Independently grade and approve/block |
-| DIAGNOSE | `cypress-bug-hunter` | Trace failures to root cause |
-| SHIP | `pr-creator` | Prepare the pull request |
+| EVALUATE | `pre-merge-qa-gate` | Independently grade and approve/block (read-only) |
+| DIAGNOSE | `cypress-bug-hunter` | Trace a reproducible failure to root cause |
 
 ## Cross-tool glance
 
@@ -61,7 +66,7 @@ One harness policy projects to four tools. Full diagrams live in
 | Codex | `AGENTS.md` | none — floor only |
 
 Shared skills land under `.claude/skills` and `.agents/skills`. Universal floor for every tool and
-human: `npm run verify` → pre-push → CI.
+human: `npm run verify` → pre-push → CI (when Actions is available).
 
 Edit neutral sources (`harness.config.json`, `harness/**`, `.claude/hooks/**`), then:
 
@@ -109,8 +114,14 @@ npm run cy:run:e2e
 npm run evidence:build
 ```
 
-Cypress produces HTML plus machine-readable JSON. The evidence script produces a runner-neutral
-summary, requirement coverage, and five outcome metrics. Missing upstream evidence is reported as
-unavailable, never as a misleading zero.
+Cypress produces HTML plus machine-readable JSON (`video: false` by default; screenshots on
+failure). The evidence script produces a runner-neutral summary, requirement coverage, and five
+outcome metrics. Missing upstream evidence is reported as unavailable, never as a misleading zero.
 
 Cypress Cloud is optional and activates only when both Cloud credentials are supplied.
+
+## CI note
+
+Automatic `pull_request` / `push` triggers are temporarily disabled while the GitHub account is
+billing-locked. Manual `workflow_dispatch` remains available. Restore the commented triggers in
+`.github/workflows/*.yml` when billing is fixed — see [docs/guides/ci-cd-guide.md](docs/guides/ci-cd-guide.md).

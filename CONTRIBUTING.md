@@ -1,6 +1,9 @@
 # Contributing
 
-This project uses a strict **Config → Commands → Tests** architecture. Every contribution must follow it — the CI pipeline enforces it automatically.
+This project uses a strict **Config → Commands → Tests** architecture. Every contribution must
+follow it. Local `npm run verify` and the write-time hooks (Claude / Copilot / Cursor) enforce it
+before merge. Automatic GitHub Actions PR checks are temporarily disabled while the account is
+billing-locked — see [docs/guides/ci-cd-guide.md](docs/guides/ci-cd-guide.md).
 
 ---
 
@@ -37,7 +40,7 @@ flowchart TD
     J --> K{PASS?}
     K -- BLOCK --> L["Fix flagged issues"]
     L --> G
-    K -- Yes --> M(["pr-creator agent\nOpen PR"])
+    K -- Yes --> M(["Open PR\n(parent workflow)"])
 ```
 
 ---
@@ -59,7 +62,7 @@ When adding a genuinely new module (confirmed no existing match):
 
 ## Non-Negotiable Rules
 
-The CI pipeline (`cypress-rules.yml`) blocks merge automatically on any of these:
+`npm run check:rules` (and `cypress-rules.yml` when Actions can run) blocks on any of these:
 
 ```
 NEVER  cy.wait(number)          — use cy.apiWait('@alias') or .should()
@@ -83,6 +86,8 @@ NEVER  real credentials in code — use cypress.env.json locally, secrets in CI
 [ ] New command registered in cypress/support/commands.js
 [ ] npm run cy:run:smoke passes locally
 [ ] pre-merge-qa-gate agent returns PASS or PASS_WITH_ACTIONS
+[ ] PASS_WITH_ACTIONS lists named non-blocking follow-ups only (blockers → BLOCK)
+[ ] Gate verdict recorded via evidence:record when measuring M1
 ```
 
 ---

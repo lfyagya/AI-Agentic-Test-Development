@@ -109,6 +109,17 @@ another repository `BLOCK` rule still blocks the merge regardless of score.
 The gate reports scenario Type, Priority, and reason; the per-test score and deductions; the
 overall verdict; and any gaps or risks. It never invents evidence or coverage.
 
+### Verdict meanings
+
+| Verdict             | Merge?   | Follow-ups                                                            |
+| ------------------- | -------- | --------------------------------------------------------------------- |
+| `PASS`              | Yes      | None required                                                         |
+| `PASS_WITH_ACTIONS` | Yes, now | Named non-blocking follow-ups only — never a substitute for a blocker |
+| `BLOCK`             | No       | Blockers with file:line; fix before merge                             |
+
+`PASS_WITH_ACTIONS` counts as accepted for M1. Named actions (and optional resolution notes) are
+preserved on the gate ledger row and surfaced in `metrics.json` as `gateFollowUps`.
+
 ## Build order
 
 Search existing values before creating anything, then work in this order:

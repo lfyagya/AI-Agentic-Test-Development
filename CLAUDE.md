@@ -1,7 +1,9 @@
 # Cypress Harness Instructions
 
-This repository is an empty, application-agnostic QA harness. Do not invent an application,
-requirement, selector, route, credential, or expected result.
+This repository is the **reference instantiation** of the Cypress AI harness: harness policy plus a
+verified Automation Exercise `products` module (`AE-PRODUCTS-001`, `AE-PRODUCTS-002`). Do not invent
+an application fact, requirement, selector, route, credential, or expected result beyond
+`evidence/requirements.json` and `docs/application-intelligence/**`.
 
 ## Source precedence
 
@@ -17,17 +19,22 @@ When sources disagree, stop and report the conflict. Tests do not redefine busin
 
 ## Lifecycle
 
-Use `project-bootstrapper` before `cypress-generator` for every new project or module.
-
 ```text
-GATHER → SPECIFY → BUILD → GUARD → EVALUATE → EXECUTE → DIAGNOSE → MEASURE
+INTAKE → SPECIFY → BUILD → GUARD → EVALUATE → EXECUTE → DIAGNOSE → MEASURE
 ```
 
-- GATHER creates verified project/module context and draft requirements.
+- INTAKE (`cypress-intake`) creates verified project/module context, draft requirements, and the
+  config constants a requirement will touch. Run it for a new project or module, or when application
+  behavior is unknown.
 - The owner approves requirements and promotes them to `active`.
-- BUILD accepts exactly one active requirement id.
-- EVALUATE is read-only and supplies the merge verdict.
+- BUILD (`cypress-generator`) accepts exactly one active requirement id.
+- EVALUATE (`pre-merge-qa-gate`) is read-only and supplies the merge verdict.
+- DIAGNOSE (`cypress-bug-hunter`) runs only after a reproducible failure.
 - Repairs are bounded by `loops.gateRepairLimit`.
+
+Four agents, invoked by condition — not a fixed pipeline. A routine change to a documented module
+goes straight to BUILD, then verify. Shipping (PR) and workflow maintenance are the parent workflow's
+job, not separate agents.
 
 The complete procedure is [`docs/START-HERE.md`](docs/START-HERE.md). How one policy is projected into
 Claude, Copilot, Cursor, and Codex — and which tools can refuse a write — is in
@@ -76,10 +83,14 @@ NEVER  →  a spec with no requirement tag, or more than one                 exa
 
 <!-- HARNESS:RULES:END -->
 
-## Empty state
+## Reference vs empty intake
 
-Zero tests is valid before project intake. `npm test` must pass without launching Cypress, and
-`npm run evidence:build` must produce bootstrap metrics with explicit unavailable reasons.
+This clone ships two active products smoke specs. `npm test` runs them; `npm run evidence:build`
+expects a report and should reach `metrics.status: "ready"` when titles carry requirement ids.
+
+Zero tests remains valid for a brand-new profile before intake: `npm test` reports bootstrap without
+launching Cypress, and `evidence:build` produces bootstrap metrics with explicit unavailable
+reasons.
 
 ## Verification
 

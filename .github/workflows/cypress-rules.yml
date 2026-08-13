@@ -15,9 +15,19 @@ name: Cypress Architecture Rules
 #   - new page-object wrapper files are added
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Automatic PR runs are temporarily disabled while the GitHub account is billing-locked. Keep
-# manual dispatch so maintainers can validate after billing is restored; reinstate the prior
-# pull_request path filter at that point.
+# BLOCKER: GitHub account billing lock — automatic Actions minutes are unavailable.
+# Intended activation (restore when billing is fixed):
+#   on:
+#     pull_request:
+#       paths:
+#         - "cypress/**"
+#         - ".claude/hooks/**"
+#         - "harness.config.json"
+#         - "harness/**"
+#         - "package.json"
+#         - "package-lock.json"
+#     workflow_dispatch:
+# Until then, only manual runs work. Do not re-enable pull_request while locked.
 on:
   workflow_dispatch:
 
@@ -35,7 +45,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Verify harness projections
         run: npm run harness:check && npm run harness:test

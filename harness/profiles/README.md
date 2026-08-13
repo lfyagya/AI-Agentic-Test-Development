@@ -4,7 +4,7 @@ This repo's complete Cypress configuration lives here. `harness.config.json` at 
 from these files, so a new project starts from zero by writing **one file**: its profile.
 
 ```text
-adapters/cypress.json       complete Cypress policy — 9 rules, 7 agents, 4 hooks, 3 skills, permissions
+adapters/cypress.json       complete Cypress policy — 9 rules, 4 agents, 4 hooks, 3 skills, permissions
 projects/_template.json     copy this to start a project
 projects/<key>.json         one project's facts (~8 lines)
 bin/compose-harness-config.mjs   profile + adapter → harness.config.json
@@ -45,8 +45,8 @@ npm run harness:sync
 npm run harness:check
 ```
 
-That yields the full seven-role roster, every rule enforced at write time, and both AI adapters wired
-— with no test in the repo. Verify the empty state, then begin intake at
+That yields the full four-role roster, every rule enforced at write time, and enabled AI adapters
+wired. For a **new empty profile**, verify bootstrap (no specs), then begin intake at
 [`docs/START-HERE.md`](../../docs/START-HERE.md):
 
 ```bash
@@ -57,7 +57,11 @@ npm test
 npm run evidence:build
 ```
 
-Both must pass and `evidence:build` must report `bootstrap`.
+Both must pass; on an empty profile `evidence:build` reports `bootstrap`.
+
+This repository's own profile (`projects/cypress-boilerplate.json`) is the **reference
+instantiation** — it already includes two active products requirements and smoke specs. Re-compose
+it with `npm run harness:compose` as below; do not expect bootstrap here.
 
 ## Re-composing this repo
 
@@ -82,7 +86,7 @@ that diverges from the profile fails the suite instead of surviving quietly.
 npm run harness:profile:test
 ```
 
-The self-check asserts every profile composes, all seven roles are present, both required facts are
+The self-check asserts every profile composes, all four roles are present, both required facts are
 enforced, overrides beat defaults without clobbering sibling keys, and — most importantly — that **the
 EVALUATE gate stays `permissionMode: plan` with no Write, Edit, or Bash**. If an override could hand
 the gate write access, the builder could grade its own output and the harness would be theatre. That

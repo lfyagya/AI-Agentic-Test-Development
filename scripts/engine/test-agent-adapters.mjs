@@ -101,11 +101,14 @@ assert.match(builderInstructions, /failure-safe cleanup/);
 assert.match(builderInstructions, /cypress-author/);
 assert.match(builderInstructions, /cypress-docs/);
 
-const gatherer = config.agents.find((agent) => agent.role === "GATHER");
-assert.ok(gatherer, "GATHER agent is required");
-const gathererInstructions = agentInstructions(root, config, gatherer);
-assert.match(gathererInstructions, /evidence\/requirements\.json/);
-assert.match(gathererInstructions, /do not write tests/i);
+const intake = config.agents.find((agent) => agent.role === "INTAKE");
+assert.ok(intake, "INTAKE agent is required");
+const intakeInstructions = agentInstructions(root, config, intake);
+assert.match(intakeInstructions, /evidence\/requirements\.json/);
+assert.match(intakeInstructions, /do not write tests/i);
+// INTAKE merges gathering and discovery, so it must also own selector/route capture into config.
+assert.match(intakeInstructions, /cypress\/configs\//);
+assert.match(intakeInstructions, /Required Cypress skills for this role/);
 
 const hooks = copilotHooks(config);
 assert.equal(hooks.version, 1);
