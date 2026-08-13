@@ -15,20 +15,18 @@ name: Cypress Architecture Rules
 #   - new page-object wrapper files are added
 # ─────────────────────────────────────────────────────────────────────────────
 
-# BLOCKER: GitHub account billing lock — automatic Actions minutes are unavailable.
-# Intended activation (restore when billing is fixed):
-#   on:
-#     pull_request:
-#       paths:
-#         - "cypress/**"
-#         - ".claude/hooks/**"
-#         - "harness.config.json"
-#         - "harness/**"
-#         - "package.json"
-#         - "package-lock.json"
-#     workflow_dispatch:
-# Until then, only manual runs work. Do not re-enable pull_request while locked.
+# BLOCKER: GitHub account billing lock — automatic Actions minutes are unavailable, so only manual
+# runs work today. Restoring automatic CI once billing is fixed is a single step: uncomment the
+# `pull_request` block in `on:` below. Do not re-enable it while the account is locked.
 on:
+  # pull_request:
+  #   paths:
+  #     - "cypress/**"
+  #     - ".claude/hooks/**"
+  #     - "harness.config.json"
+  #     - "harness/**"
+  #     - "package.json"
+  #     - "package-lock.json"
   workflow_dispatch:
 
 jobs:
