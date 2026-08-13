@@ -1,6 +1,6 @@
 <!-- GENERATED FROM harness.config.json — DO NOT EDIT. Change harness.config.json, then run npm run harness:sync. npm run harness:check fails on drift. -->
 
-# GitHub Copilot Instructions — cypress-automation-boilerplate
+# GitHub Copilot Instructions — cypress-ai-agentic-test-development
 
 Architecture: **Config → Commands → Tests**. Read `CLAUDE.md` for the full framework contract and
 `docs/application-intelligence/<module>/module-context.md` for what the application does.

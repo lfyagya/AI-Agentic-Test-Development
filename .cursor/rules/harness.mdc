@@ -1,11 +1,11 @@
 ---
-description: cypress-automation-boilerplate — Cypress harness contract: non-negotiable rules, architecture, and agent roster
+description: cypress-ai-agentic-test-development — Cypress harness contract: non-negotiable rules, architecture, and agent roster
 alwaysApply: true
 ---
 
 <!-- GENERATED FROM harness.config.json — DO NOT EDIT. Change harness.config.json, then run npm run harness:sync. npm run harness:check fails on drift. -->
 
-# cypress-automation-boilerplate — Cypress Harness (Cursor rules)
+# cypress-ai-agentic-test-development — Cypress Harness (Cursor rules)
 
 Architecture: **Config → Commands → Tests**. Read `CLAUDE.md` for the full framework contract and
 `docs/application-intelligence/<module>/module-context.md` for what the application does.
