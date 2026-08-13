@@ -97,6 +97,13 @@ declare namespace Cypress {
     /** Validates a payload against a schema validator from `cypress/schemas/**`. */
     validateSchema(data: unknown, validator: unknown): Chainable<void>;
 
+    // --- Products module ------------------------------------------------------------------------
+    /**
+     * Issues the read-only Automation Exercise product catalog request from the products API config.
+     * Resolves with the raw Cypress response so the spec can assert status and body.
+     */
+    requestProductCatalog(): Chainable<Cypress.Response<unknown>>;
+
     // --- Reporting ------------------------------------------------------------------------------
     /** Emits a labelled step into the command log. */
     step(message: string): Chainable<void>;
