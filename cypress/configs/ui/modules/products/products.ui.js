@@ -5,10 +5,9 @@
  * the listing renders as a card grid (`.features_items`) of `.product-image-wrapper`
  * cards, each exposing a product name in a `<p>` inside `.productinfo`.
  *
- * The application ships no `data-*` test attributes, so these are structural CSS hooks
- * (locator contract level 5) centralized here by intent: an application change means one
- * edit in this file, not a hunt through specs. Intent-based checks (the visible "All
- * Products" heading text) are preferred in assertions where a stable one exists.
+ * The application ships no `data-*` test attributes, so these structural CSS hooks
+ * (locator contract level 5) are centralized here. Visible text is preferred for the
+ * heading where a stable semantic value exists.
  */
 export const PRODUCTS_UI = Object.freeze({
   listingGrid: ".features_items",
