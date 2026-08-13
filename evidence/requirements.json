@@ -2,6 +2,24 @@
   "version": 1,
   "requirements": [
     {
+      "id": "AE-PRODUCTS-001",
+      "module": "products",
+      "title": "product catalog API returns a non-empty, well-formed product list",
+      "acceptanceCriteria": [
+        "GET /api/productsList responds with HTTP 200",
+        "The response body contains a non-empty products array",
+        "Each product exposes id, name, and price fields"
+      ],
+      "preconditions": ["The Automation Exercise public API is reachable"],
+      "expectedOutcome": "The catalog endpoint returns HTTP 200 with a non-empty, well-formed product list",
+      "type": "SMOKE",
+      "priority": "P0",
+      "tier": "smoke",
+      "path": "positive",
+      "status": "active",
+      "source": "docs/application-intelligence/products/module-context.md#api-catalog"
+    },
+    {
       "id": "AE-PRODUCTS-002",
       "module": "products",
       "title": "anonymous visitor sees the All Products listing grid",
