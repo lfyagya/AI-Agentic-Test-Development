@@ -335,6 +335,32 @@ export function buildEvidence({
   const covered = coverage.filter((entry) => entry.passing).length;
   const runSummaries = loadRunSummaries(evidenceRoot);
 
+  // Named follow-ups from PASS_WITH_ACTIONS rows. Preserved for audit; they do not affect M1
+  // (PASS_WITH_ACTIONS already counts as accepted). resolution is an optional human note.
+  const gateFollowUps = gateEntries
+    .filter(
+      (entry) =>
+        entry.verdict === "PASS_WITH_ACTIONS" &&
+        Array.isArray(entry.actions) &&
+        entry.actions.length > 0,
+    )
+    .map((entry) => ({
+      requirementId: entry.requirementId,
+      attempt: entry.attempt,
+      actions: entry.actions,
+      resolution:
+        typeof entry.resolution === "string" && entry.resolution.trim()
+          ? entry.resolution
+          : null,
+    }));
+  const incompleteGateFollowUps = gateEntries
+    .filter(
+      (entry) =>
+        entry.verdict === "PASS_WITH_ACTIONS" &&
+        (!Array.isArray(entry.actions) || entry.actions.length === 0),
+    )
+    .map((entry) => entry.requirementId);
+
   const metrics = {
     generatedAt: now,
     runId: resolvedRunId,
@@ -381,6 +407,7 @@ export function buildEvidence({
         ...ratio(covered, activeRequirements.length, "No active requirements"),
       },
     },
+    gateFollowUps,
     gaps: [
       ...(summary.traceabilityGaps.length > 0
         ? [
@@ -389,6 +416,16 @@ export function buildEvidence({
         : []),
       ...(executionStatus === "not-run"
         ? ["No test files exist yet; execution was not started"]
+        : []),
+      ...(gateFollowUps.length > 0
+        ? [
+            `${gateFollowUps.length} accepted gate verdict(s) carry named follow-up actions`,
+          ]
+        : []),
+      ...(incompleteGateFollowUps.length > 0
+        ? [
+            `${incompleteGateFollowUps.length} legacy PASS_WITH_ACTIONS verdict(s) lack named actions: ${incompleteGateFollowUps.join(", ")}`,
+          ]
         : []),
     ],
   };

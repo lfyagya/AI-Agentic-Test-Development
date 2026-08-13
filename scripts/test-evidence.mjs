@@ -67,6 +67,63 @@ try {
   });
   assert.equal(cypress.summary.tests[0].requirement, requirement.id);
   assert.equal(cypress.metrics.metrics.M5.value, 1);
+  assert.deepEqual(cypress.metrics.gateFollowUps, []);
+
+  // PASS_WITH_ACTIONS follow-ups survive into metrics without changing M1 acceptance.
+  fs.writeFileSync(
+    path.join(cypressRoot, "evidence", "gate-log.jsonl"),
+    `${JSON.stringify({
+      requirementId: requirement.id,
+      attempt: 1,
+      verdict: "PASS_WITH_ACTIONS",
+      actions: ["tighten selector comment"],
+      resolution: "owner backlog",
+      timestamp: "2026-01-01T00:00:00.000Z",
+    })}\n`,
+  );
+  const withFollowUps = buildEvidence({
+    root: cypressRoot,
+    framework: "cypress",
+    reportPath: cypressReport,
+    runId: "cypress-follow-ups",
+    now: "2026-01-01T00:00:00.000Z",
+  });
+  assert.equal(withFollowUps.metrics.metrics.M1.value, 1);
+  assert.deepEqual(withFollowUps.metrics.gateFollowUps, [
+    {
+      requirementId: requirement.id,
+      attempt: 1,
+      actions: ["tighten selector comment"],
+      resolution: "owner backlog",
+    },
+  ]);
+  assert.match(
+    withFollowUps.metrics.gaps.join("\n"),
+    /named follow-up actions/,
+  );
+
+  // Historical PASS_WITH_ACTIONS rows remain accepted for M1, but missing action details are visible.
+  fs.writeFileSync(
+    path.join(cypressRoot, "evidence", "gate-log.jsonl"),
+    `${JSON.stringify({
+      requirementId: requirement.id,
+      attempt: 1,
+      verdict: "PASS_WITH_ACTIONS",
+      timestamp: "2025-12-31T00:00:00.000Z",
+    })}\n`,
+  );
+  const legacyFollowUps = buildEvidence({
+    root: cypressRoot,
+    framework: "cypress",
+    reportPath: cypressReport,
+    runId: "cypress-legacy-follow-ups",
+    now: "2026-01-01T00:00:00.000Z",
+  });
+  assert.equal(legacyFollowUps.metrics.metrics.M1.value, 1);
+  assert.match(
+    legacyFollowUps.metrics.gaps.join("\n"),
+    /legacy PASS_WITH_ACTIONS verdict\(s\) lack named actions/,
+  );
 
   const playwrightRoot = fixtureRoot();
   roots.push(playwrightRoot);

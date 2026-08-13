@@ -22,8 +22,10 @@ Missing or failed evidence is a `BLOCK`; do not claim that you ran commands your
 
 ## Verdict Scale
 
-- **PASS** — all phases green, safe to merge
-- **PASS_WITH_ACTIONS** — mergeable after listed actions are completed
+- **PASS** — all phases green, safe to merge; no required follow-ups
+- **PASS_WITH_ACTIONS** — merge-ready now; list named non-blocking follow-ups under Actions.
+  Anything that must be fixed before merge is a **BLOCK**, not an action. Record with
+  `npm run evidence:record -- gate ... --verdict PASS_WITH_ACTIONS --actions "a|b"`.
 - **BLOCK** — must not merge; blockers listed with file:line references
 
 ## Phase 1: Architecture Compliance

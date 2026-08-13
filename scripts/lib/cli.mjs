@@ -5,7 +5,8 @@
 // started to differ: evidence.mjs paired tokens strictly by position and could not express a boolean
 // flag, which is why --dry-run needed a different parser somewhere else.
 //
-// node:util.parseArgs (Node 18.3+) would be the stdlib answer and is deliberately not used here: it
+// node:util.parseArgs (available on the supported Node 22 runtime) would be the stdlib answer and
+// is deliberately not used here: it
 // requires every option declared up front and, in strict mode, rejects unknown flags. These tools
 // intentionally take loose `--key value` input and are invoked by agents and CI as well as humans, so
 // a permissive parser with validation at the point of use is the better fit. Revisit if the flag

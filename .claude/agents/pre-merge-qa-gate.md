@@ -106,6 +106,17 @@ another repository `BLOCK` rule still blocks the merge regardless of score.
 The gate reports scenario Type, Priority, and reason; the per-test score and deductions; the
 overall verdict; and any gaps or risks. It never invents evidence or coverage.
 
+### Verdict meanings
+
+| Verdict             | Merge?   | Follow-ups                                                            |
+| ------------------- | -------- | --------------------------------------------------------------------- |
+| `PASS`              | Yes      | None required                                                         |
+| `PASS_WITH_ACTIONS` | Yes, now | Named non-blocking follow-ups only — never a substitute for a blocker |
+| `BLOCK`             | No       | Blockers with file:line; fix before merge                             |
+
+`PASS_WITH_ACTIONS` counts as accepted for M1. Named actions (and optional resolution notes) are
+preserved on the gate ledger row and surfaced in `metrics.json` as `gateFollowUps`.
+
 ## Required Input Evidence
 
 The invocation must identify the changed files and provide command output for:
@@ -120,8 +131,10 @@ Missing or failed evidence is a `BLOCK`; do not claim that you ran commands your
 
 ## Verdict Scale
 
-- **PASS** — all phases green, safe to merge
-- **PASS_WITH_ACTIONS** — mergeable after listed actions are completed
+- **PASS** — all phases green, safe to merge; no required follow-ups
+- **PASS_WITH_ACTIONS** — merge-ready now; list named non-blocking follow-ups under Actions.
+  Anything that must be fixed before merge is a **BLOCK**, not an action. Record with
+  `npm run evidence:record -- gate ... --verdict PASS_WITH_ACTIONS --actions "a|b"`.
 - **BLOCK** — must not merge; blockers listed with file:line references
 
 ## Phase 1: Architecture Compliance

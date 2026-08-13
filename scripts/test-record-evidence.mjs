@@ -4,7 +4,12 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { buildEntry, findDuplicate, record } from "./record-evidence.mjs";
+import {
+  buildEntry,
+  findDuplicate,
+  parseNamedActions,
+  record,
+} from "./record-evidence.mjs";
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "rec-"));
 fs.mkdirSync(path.join(root, "evidence"), { recursive: true });
@@ -43,6 +48,69 @@ assert.throws(
   () => buildEntry("gate", { requirement: "NOPE", verdict: "PASS" }, root),
   /Unknown requirement/,
 );
+
+// PASS_WITH_ACTIONS is merge-ready with required named follow-ups preserved on the row.
+assert.deepEqual(parseNamedActions("docs|cleanup trailing"), [
+  "docs",
+  "cleanup trailing",
+]);
+assert.deepEqual(parseNamedActions("  lone  "), ["lone"]);
+assert.deepEqual(parseNamedActions(undefined), []);
+const withActions = buildEntry(
+  "gate",
+  {
+    requirement: "REQ-1",
+    attempt: "1",
+    verdict: "PASS_WITH_ACTIONS",
+    actions: "update CI guide|clarify billing note",
+    resolution: "tracked in maintainer backlog",
+  },
+  root,
+);
+assert.equal(withActions.verdict, "PASS_WITH_ACTIONS");
+assert.deepEqual(withActions.actions, [
+  "update CI guide",
+  "clarify billing note",
+]);
+assert.equal(withActions.resolution, "tracked in maintainer backlog");
+assert.throws(
+  () =>
+    buildEntry(
+      "gate",
+      { requirement: "REQ-1", verdict: "PASS_WITH_ACTIONS" },
+      root,
+    ),
+  /requires --actions/,
+);
+assert.throws(
+  () =>
+    buildEntry(
+      "gate",
+      { requirement: "REQ-1", verdict: "PASS", actions: "should not appear" },
+      root,
+    ),
+  /only valid with --verdict PASS_WITH_ACTIONS/,
+);
+assert.throws(
+  () =>
+    buildEntry(
+      "gate",
+      {
+        requirement: "REQ-1",
+        verdict: "PASS",
+        resolution: "not for PASS",
+      },
+      root,
+    ),
+  /only valid with --verdict PASS_WITH_ACTIONS/,
+);
+const plainPass = buildEntry(
+  "gate",
+  { requirement: "REQ-1", attempt: "1", verdict: "PASS" },
+  root,
+);
+assert.equal(plainPass.actions, undefined);
+assert.equal(plainPass.resolution, undefined);
 
 // --- ci ---
 const ci = buildEntry(

@@ -3,6 +3,8 @@
 // scripts/evidence.mjs READS these; nothing else writes them.
 //
 //   node scripts/record-evidence.mjs gate   --requirement <id> --attempt 1 --verdict PASS
+//   node scripts/record-evidence.mjs gate   --requirement <id> --attempt 1 --verdict PASS_WITH_ACTIONS \
+//        --actions "named follow-up|another follow-up" [--resolution "optional note"]
 //   node scripts/record-evidence.mjs ci     --pipeline <id> --trigger pr --attempt 1 --outcome passed
 //   node scripts/record-evidence.mjs effort --requirement <id> --minutes 45
 //
@@ -52,6 +54,17 @@ function knownRequirement(root, id) {
   return id;
 }
 
+/** Pipe-separated named follow-ups for PASS_WITH_ACTIONS. Empty / missing → []. */
+export function parseNamedActions(raw) {
+  if (raw === undefined || raw === null || raw === true || raw === false) {
+    return [];
+  }
+  return String(raw)
+    .split("|")
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
 export function buildEntry(
   kind,
   args,
@@ -63,12 +76,43 @@ export function buildEntry(
     if (!VERDICTS.has(verdict)) {
       throw new Error(`--verdict must be one of ${[...VERDICTS].join(" | ")}`);
     }
-    return {
+    const actions = parseNamedActions(args.actions);
+    const resolution =
+      args.resolution === undefined ||
+      args.resolution === true ||
+      args.resolution === false
+        ? null
+        : String(args.resolution).trim() || null;
+
+    // PASS_WITH_ACTIONS is merge-ready with named non-blocking follow-ups. Actions that would
+    // block merge belong under BLOCK, not here — so the ledger requires the names.
+    if (verdict === "PASS_WITH_ACTIONS" && actions.length === 0) {
+      throw new Error(
+        'PASS_WITH_ACTIONS requires --actions "follow-up one|follow-up two"',
+      );
+    }
+    if (verdict !== "PASS_WITH_ACTIONS" && actions.length > 0) {
+      throw new Error(
+        "--actions is only valid with --verdict PASS_WITH_ACTIONS",
+      );
+    }
+    if (verdict !== "PASS_WITH_ACTIONS" && resolution) {
+      throw new Error(
+        "--resolution is only valid with --verdict PASS_WITH_ACTIONS",
+      );
+    }
+
+    const entry = {
       requirementId: knownRequirement(root, args.requirement),
       attempt: positiveInteger(args.attempt ?? 1, "attempt"),
       verdict,
       timestamp: args.timestamp ?? now,
     };
+    if (verdict === "PASS_WITH_ACTIONS") {
+      entry.actions = actions;
+      entry.resolution = resolution;
+    }
+    return entry;
   }
 
   if (kind === "ci") {
@@ -158,11 +202,14 @@ if (isMain) {
         [
           "Usage:",
           "  record-evidence.mjs gate   --requirement <id> --attempt <n> --verdict PASS|PASS_WITH_ACTIONS|BLOCK",
+          '                         [--actions "a|b" --resolution "note"]  # required/only for PASS_WITH_ACTIONS',
           "  record-evidence.mjs ci     --pipeline <id> --trigger pr|push|manual|schedule --attempt <n> --outcome passed|failed [--failure-class ENV]",
           "  record-evidence.mjs effort --requirement <id> --minutes <n> [--accepted false]",
           "",
-          "Only attempt 1 counts toward M1 and M2 — measuring after repairs measures persistence,",
-          "not quality. M2 ignores rows with --failure-class ENV so outages are not test failures.",
+          "PASS_WITH_ACTIONS means merge-ready now with named non-blocking follow-ups (preserved on",
+          "the row). Only attempt 1 counts toward M1 and M2 — measuring after repairs measures",
+          "persistence, not quality. M2 ignores rows with --failure-class ENV so outages are not",
+          "test failures.",
         ].join("\n"),
       );
       process.exit(kind ? 0 : 2);
