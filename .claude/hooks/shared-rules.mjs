@@ -141,6 +141,43 @@ export function lineNumberForIndex(text, index) {
   return text.slice(0, index).split(/\r?\n/).length;
 }
 
+/**
+ * Returns one balanced object literal beginning at `start`.
+ *
+ * Test options can contain nested objects (`retries: { runMode: 1 }`). A non-greedy regex stops at
+ * the first closing brace and can miss a later `tags` field, turning valid tests into false
+ * positives. This scanner tracks nested braces and quoted strings instead.
+ */
+export function extractBalancedObject(text, start) {
+  if (text[start] !== "{") return "";
+  let depth = 0;
+  let quote = "";
+  let escaped = false;
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index];
+    if (quote) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === quote) {
+        quote = "";
+      }
+      continue;
+    }
+    if (char === '"' || char === "'" || char === "`") {
+      quote = char;
+      continue;
+    }
+    if (char === "{") depth += 1;
+    if (char === "}") {
+      depth -= 1;
+      if (depth === 0) return text.slice(start, index + 1);
+    }
+  }
+  return "";
+}
+
 export function scanForRegex(
   violations,
   filePath,
@@ -308,14 +345,17 @@ export function scanContent(filePath, content, allowlist, repoRoot) {
     const REQUIREMENT_ID = /^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+$/;
     const TYPE_TAGS = new Set(["smoke", "regression"]);
     const PRIORITY_TAGS = new Set(["P0", "P1", "P2"]);
-    // Capture each test: the title literal and the optional options object that may hold `tags`.
-    const testCallRe =
-      /\b(?:it|specify)(?:\.\w+)?\s*\(\s*(['"`])([\s\S]*?)\1\s*(?:,\s*(\{[\s\S]*?\}))?/g;
+    // Capture each test title, then parse an optional balanced options object after it.
+    const testCallRe = /\b(?:it|specify)(?:\.\w+)?\s*\(\s*(['"`])([\s\S]*?)\1/g;
     let testMatch;
     while ((testMatch = testCallRe.exec(content)) !== null) {
       const lineNumber = lineNumberForIndex(content, testMatch.index);
       const title = String(testMatch[2] || "");
-      const optionsObject = testMatch[3] || "";
+      let cursor = testCallRe.lastIndex;
+      while (/\s/.test(content[cursor] || "")) cursor += 1;
+      if (content[cursor] === ",") cursor += 1;
+      while (/\s/.test(content[cursor] || "")) cursor += 1;
+      const optionsObject = extractBalancedObject(content, cursor);
       const titleIdMatch = title.match(/^\s*\[([^\]]+)\]/);
       const titleId = titleIdMatch ? titleIdMatch[1].trim() : null;
 
@@ -338,6 +378,12 @@ export function scanContent(filePath, content, allowlist, repoRoot) {
           !PRIORITY_TAGS.has(bare(tag).toUpperCase()) &&
           REQUIREMENT_ID.test(bare(tag)),
       );
+      const pathTier = ["smoke", "e2e", "ddt"].find((tier) =>
+        normalized.split("/").includes(tier),
+      );
+      const tierTags = pathTier
+        ? tags.filter((tag) => bare(tag).toLowerCase() === pathTier)
+        : [];
 
       const problems = [];
       if (!titleId || !REQUIREMENT_ID.test(titleId)) {
@@ -356,6 +402,11 @@ export function scanContent(filePath, content, allowlist, repoRoot) {
       if (priorityTags.length !== 1) {
         problems.push(
           `expected exactly one Priority tag (@P0/@P1/@P2), found ${priorityTags.length}`,
+        );
+      }
+      if (pathTier && tierTags.length !== 1) {
+        problems.push(
+          `expected exactly one tier tag (@${pathTier}) for the ${pathTier} path, found ${tierTags.length}`,
         );
       }
       if (

@@ -2,24 +2,21 @@
 /**
  * Requirement-registry consistency guard.
  *
- * `evidence:build` already enforces that ids are unique *within* this branch's
- * `evidence/requirements.json`. It cannot see other branches, so two branches can each define the
- * same id for different behavior — exactly what happened when two PRs both introduced
- * `AE-PRODUCTS-001` (one for an API contract, one for a UI grid). Whichever merges second silently
- * redefines the id.
- *
- * This check compares the local registry against the base branch (default origin/main). When an id
- * exists in both but its meaning diverges, it fails. The collision therefore surfaces the moment the
- * second branch is checked against a base that already carries the first definition — deterministic,
- * offline-safe (skips when the base ref is unavailable), and free of any network dependency.
+ * `evidence:build` enforces uniqueness only inside one branch. This check also verifies that specs
+ * reference active local ids and that an id already on the base branch is not redefined for a
+ * different behavior.
  */
 
 import { execFileSync } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs, readJson } from "./lib/cli.mjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const DEFAULT_ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
 const COMPARED_FIELDS = [
   "module",
   "title",
@@ -28,7 +25,7 @@ const COMPARED_FIELDS = [
   "preconditions",
 ];
 
-function canonical(requirement) {
+export function canonical(requirement) {
   return JSON.stringify(
     Object.fromEntries(
       COMPARED_FIELDS.map((field) => [field, requirement[field] ?? null]),
@@ -36,24 +33,43 @@ function canonical(requirement) {
   );
 }
 
-function loadLocal() {
-  const registry = readJson(path.join(root, "evidence", "requirements.json"));
-  if (registry?.version !== 1 || !Array.isArray(registry.requirements)) {
-    throw new Error(
-      "evidence/requirements.json must contain version 1 and requirements[]",
-    );
+export function validateLocalRequirements(requirements) {
+  const ids = new Set();
+  const activeIds = new Set();
+  for (const requirement of requirements) {
+    if (!requirement.id || ids.has(requirement.id)) {
+      throw new Error(
+        `duplicate or missing id in evidence/requirements.json: ${requirement.id ?? "<missing>"}`,
+      );
+    }
+    ids.add(requirement.id);
+    if (requirement.status === "active") activeIds.add(requirement.id);
   }
-  return registry.requirements;
+  return activeIds;
 }
 
-function loadBase(baseRef) {
+export function findDivergentRequirements(local, base) {
+  const baseById = new Map(
+    base.map((requirement) => [requirement.id, requirement]),
+  );
+  return local
+    .filter((requirement) => {
+      const baseRequirement = baseById.get(requirement.id);
+      return (
+        baseRequirement && canonical(baseRequirement) !== canonical(requirement)
+      );
+    })
+    .map((requirement) => requirement.id);
+}
+
+export function loadBaseRequirements(baseRef, repoRoot = DEFAULT_ROOT) {
   let raw;
   try {
     raw = execFileSync(
       "git",
       ["show", `${baseRef}:evidence/requirements.json`],
       {
-        cwd: root,
+        cwd: repoRoot,
         encoding: "utf8",
         stdio: ["ignore", "pipe", "ignore"],
       },
@@ -69,54 +85,103 @@ function loadBase(baseRef) {
   }
 }
 
-const args = parseArgs(process.argv.slice(2));
-const baseRef =
-  typeof args["base-ref"] === "string" ? args["base-ref"] : "origin/main";
+function walk(directory) {
+  if (!fs.existsSync(directory)) return [];
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const fullPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) return walk(fullPath);
+    return /\.cy\.(?:m|c)?[jt]s$/i.test(entry.name) ? [fullPath] : [];
+  });
+}
 
-const local = loadLocal();
+export function findUnknownSpecRequirementIds(
+  repoRoot,
+  activeIds,
+  readFile = (file) => fs.readFileSync(file, "utf8"),
+) {
+  const unknown = new Set();
+  const testTitle =
+    /\b(?:it|specify)(?:\.\w+)?\s*\(\s*(['"`])\s*\[([^\]]+)\][\s\S]*?\1/g;
+  for (const file of walk(path.join(repoRoot, "cypress", "tests"))) {
+    const content = readFile(file);
+    let match;
+    while ((match = testTitle.exec(content)) !== null) {
+      if (!activeIds.has(match[2])) unknown.add(match[2]);
+    }
+  }
+  return [...unknown].sort();
+}
 
-const localIds = new Set();
-for (const requirement of local) {
-  if (!requirement.id || localIds.has(requirement.id)) {
-    console.error(
-      `[requirements] duplicate or missing id in evidence/requirements.json: ${requirement.id ?? "<missing>"}`,
+export function checkRequirements({
+  repoRoot = DEFAULT_ROOT,
+  baseRef = "origin/main",
+} = {}) {
+  const registry = readJson(
+    path.join(repoRoot, "evidence", "requirements.json"),
+  );
+  if (registry?.version !== 1 || !Array.isArray(registry.requirements)) {
+    throw new Error(
+      "evidence/requirements.json must contain version 1 and requirements[]",
     );
+  }
+
+  const local = registry.requirements;
+  const activeIds = validateLocalRequirements(local);
+  const unknown = findUnknownSpecRequirementIds(repoRoot, activeIds);
+  if (unknown.length > 0) {
+    throw new Error(
+      `spec requirement id(s) are not active in evidence/requirements.json: ${unknown.join(", ")}`,
+    );
+  }
+
+  const base = loadBaseRequirements(baseRef, repoRoot);
+  if (base === null) {
+    return {
+      localCount: local.length,
+      baseAvailable: false,
+      baseRef,
+    };
+  }
+
+  const divergent = findDivergentRequirements(local, base);
+  if (divergent.length > 0) {
+    throw new Error(
+      `id(s) redefined versus ${baseRef}: ${divergent.join(", ")}. ` +
+        "Give the new behavior a fresh requirement id instead of reusing one that already means " +
+        "something else on the base branch.",
+    );
+  }
+
+  return {
+    localCount: local.length,
+    baseAvailable: true,
+    baseRef,
+  };
+}
+
+const isMain =
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  try {
+    const args = parseArgs(process.argv.slice(2));
+    const result = checkRequirements({
+      baseRef:
+        typeof args["base-ref"] === "string" ? args["base-ref"] : "origin/main",
+    });
+    if (!result.baseAvailable) {
+      console.log(
+        `[requirements] base ref ${result.baseRef} unavailable; skipped cross-branch check ` +
+          "(in-file ids unique; spec ids active).",
+      );
+    } else {
+      console.log(
+        `[requirements] ${result.localCount} requirement(s) consistent with ${result.baseRef}; ` +
+          "spec ids active and no id reused for a different behavior.",
+      );
+    }
+  } catch (error) {
+    console.error(`[requirements] ${error.message}`);
     process.exit(1);
   }
-  localIds.add(requirement.id);
 }
-
-const base = loadBase(baseRef);
-if (base === null) {
-  console.log(
-    `[requirements] base ref ${baseRef} unavailable; skipped cross-branch check (in-file ids unique).`,
-  );
-  process.exit(0);
-}
-
-const baseById = new Map(
-  base.map((requirement) => [requirement.id, requirement]),
-);
-const divergent = [];
-for (const requirement of local) {
-  const baseRequirement = baseById.get(requirement.id);
-  if (
-    baseRequirement &&
-    canonical(baseRequirement) !== canonical(requirement)
-  ) {
-    divergent.push(requirement.id);
-  }
-}
-
-if (divergent.length > 0) {
-  console.error(
-    `[requirements] id(s) redefined versus ${baseRef}: ${divergent.join(", ")}. ` +
-      "Give the new behavior a fresh requirement id instead of reusing one that already means " +
-      "something else on the base branch.",
-  );
-  process.exit(1);
-}
-
-console.log(
-  `[requirements] ${local.length} requirement(s) consistent with ${baseRef}; no id reused for a different behavior.`,
-);

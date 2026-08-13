@@ -83,7 +83,7 @@ assert.equal(
     'import { CART_UI } from "@configs/ui/modules/cart/cart.ui.js";\n' +
       'describe("[REQ-1] cart", () => {\n' +
       "  beforeEach(() => { cy.ensureAuthenticated(); });\n" +
-      '  it("[REQ-1] shows the cart", { tags: ["@REQ-1", "@regression", "@P0"] }, () => {\n' +
+      '  it("[REQ-1] shows the cart", { tags: ["@REQ-1", "@regression", "@P0", "@e2e"] }, () => {\n' +
       "    cy.get(CART_UI.LIST).should('be.visible');\n" +
       "  });\n" +
       "});\n",

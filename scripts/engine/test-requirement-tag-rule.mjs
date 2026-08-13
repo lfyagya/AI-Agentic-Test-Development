@@ -40,12 +40,29 @@ assert.equal(
   "a correctly tagged test must not trip the rule",
 );
 
+// Nested options before `tags` remain visible to the balanced-object parser.
+assert.equal(
+  tagMessages(
+    'it("[AE-PRODUCTS-001] catalog renders", { retries: { runMode: 1 }, env: { locale: "en" }, tags: ["@AE-PRODUCTS-001", "@smoke", "@P0"] }, () => {});',
+  ).length,
+  0,
+  "nested options before tags must not create a false positive",
+);
+
 // The exact PR #5 defect: duplicate Type tag (@SMOKE + @smoke) is two Type tags.
 const duplicateType = tagMessages(
   'it("[AE-PRODUCTS-001] catalog", { tags: ["@AE-PRODUCTS-001", "@SMOKE", "@P0", "@smoke"] }, () => {});',
 );
 assert.equal(duplicateType.length, 1, "duplicate Type tag must be flagged");
 assert.match(duplicateType[0], /exactly one Type tag .* found 2/);
+
+// More than one requirement tag is rejected.
+assert.match(
+  tagMessages(
+    'it("[AE-PRODUCTS-001] catalog", { tags: ["@AE-PRODUCTS-001", "@AE-PRODUCTS-002", "@smoke", "@P0"] }, () => {});',
+  )[0],
+  /exactly one requirement id tag, found 2/,
+);
 
 // No tags at all.
 assert.equal(
@@ -76,6 +93,24 @@ assert.match(
     'it("[AE-PRODUCTS-001] catalog", { tags: ["@AE-PRODUCTS-001", "@smoke"] }, () => {});',
   )[0],
   /exactly one Priority tag .* found 0/,
+);
+
+// Modifiers and specify() use the same contract.
+assert.equal(
+  tagMessages(
+    'it.only("[AE-PRODUCTS-001] focused", { tags: ["@AE-PRODUCTS-001", "@smoke", "@P0"] }, () => {});\n' +
+      'specify("[AE-PRODUCTS-002] explicit", { tags: ["@AE-PRODUCTS-002", "@smoke", "@P1"] }, () => {});',
+  ).length,
+  0,
+  "it modifiers and specify() must parse correctly",
+);
+
+// Tier tags are path-aware: @smoke satisfies both Type and tier on this smoke path.
+assert.match(
+  tagMessages(
+    'it("[AE-PRODUCTS-001] wrong tier", { tags: ["@AE-PRODUCTS-001", "@regression", "@P0", "@e2e"] }, () => {});',
+  )[0],
+  /tier tag \(@smoke\).*found 0/,
 );
 
 // A spec file with no test cases produces no tag violations (helper/describe-only files).
