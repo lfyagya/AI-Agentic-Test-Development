@@ -15,22 +15,11 @@ name: Cypress Architecture Rules
 #   - new page-object wrapper files are added
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Automatic PR runs are temporarily disabled while the GitHub account is billing-locked. Keep
+# manual dispatch so maintainers can validate after billing is restored; reinstate the prior
+# pull_request path filter at that point.
 on:
-  pull_request:
-    paths:
-      - "cypress/**"
-      - ".claude/hooks/**"
-      - ".claude/settings.json"
-      - ".claude/agents/**"
-      - ".github/agents/**"
-      - ".github/hooks/**"
-      - ".github/copilot-instructions.md"
-      - "harness/**"
-      - "harness.config.json"
-      - "package.json"
-      - "scripts/engine/**"
-      - "CLAUDE.md"
-      - "README.md"
+  workflow_dispatch:
 
 jobs:
   validate-architecture:
