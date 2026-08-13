@@ -234,7 +234,7 @@ npx cypress run --spec "cypress/tests/payments/smoke/payments-smoke.cy.js"
 npx cypress run --expose grepTags=@smoke,grep="loads the payments list"
 ```
 
-1. Use the `cypress-bug-hunter` agent for a guided root-cause trace.
+1. Use the `cypress-debugger` agent for a guided root-cause trace.
 
 ---
 

@@ -34,7 +34,7 @@ flowchart TD
     E --> F
     F --> G["npm run cy:run:smoke\nVerify locally"]
     G --> H{Pass?}
-    H -- No --> I["cypress-bug-hunter agent"]
+    H -- No --> I["cypress-debugger agent"]
     I --> G
     H -- Yes --> J["pre-merge-qa-gate agent"]
     J --> K{PASS?}

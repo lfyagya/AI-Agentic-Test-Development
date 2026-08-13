@@ -160,7 +160,7 @@ Steps:
 
 1. Download the evidence artifact — open the HTML report and any screenshots
 2. Run the spec locally against the same environment: `npm run cy:run -- --env configFile=qa --spec "path/to/spec"`
-3. Use the `cypress-bug-hunter` agent with the error message and recent changes
+3. Use the `cypress-debugger` agent with the error message and recent changes
 
 ---
 

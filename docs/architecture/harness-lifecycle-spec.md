@@ -40,7 +40,7 @@ Generated Claude and Copilot files are projections. They are never edited direct
 | GUARD    | Hooks + CI             | Proposed change                  | Deterministic allow/block           | Security and architecture fail closed       |
 | EVALUATE | `pre-merge-qa-gate`    | Diff + supplied command evidence | Verdict + per-test grade            | Read/search only                            |
 | EXECUTE  | Cypress                | Accepted tests and environment   | HTML + JSON report                  | Production smoke is read-only               |
-| DIAGNOSE | `cypress-bug-hunter`   | Failure evidence                 | Root cause + bounded repair         | No weakened assertion or hidden failure     |
+| DIAGNOSE | `cypress-debugger`   | Failure evidence                 | Root cause + bounded repair         | No weakened assertion or hidden failure     |
 | MEASURE  | `scripts/evidence.mjs` | Reporter JSON + registries       | Summary, coverage, metrics          | Missing evidence is `null`, never zero      |
 
 SHIP (opening the PR) and harness maintenance are not lifecycle agents; the parent workflow performs

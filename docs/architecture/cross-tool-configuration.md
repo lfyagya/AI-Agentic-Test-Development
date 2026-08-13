@@ -100,7 +100,7 @@ two products smoke specs — verify runs them.
 | INTAKE | `cypress-intake` | `cypress-docs` |
 | BUILD | `cypress-generator` | `cypress-author`, `cypress-docs` |
 | EVALUATE | `pre-merge-qa-gate` (read-only) | `cypress-explain` |
-| DIAGNOSE | `cypress-bug-hunter` | `cypress-author`, `cypress-explain`, `cypress-docs` |
+| DIAGNOSE | `cypress-debugger` | `cypress-author`, `cypress-explain`, `cypress-docs` |
 | SHIP | parent workflow (no agent) | — |
 
 ---

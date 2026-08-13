@@ -25,7 +25,7 @@ Codex has no write-time hook, so these rules are guidance. The enforcing gate is
 
 - `cypress-intake` (INTAKE) — Start a new project or module, or turn unknown application behavior into context and config constants
 - `cypress-generator` (BUILD) — Build a module from a requirement id — config → commands → spec
-- `cypress-bug-hunter` (DIAGNOSE) — Debugging a reproducible test failure locally
+- `cypress-debugger` (DIAGNOSE) — Debugging a reproducible test failure locally
 - `pre-merge-qa-gate` (EVALUATE) — Evaluate supplied diff and verification evidence — PASS / PASS_WITH_ACTIONS / BLOCK
 
 Read/search only by design: the gate cannot edit files or execute shell commands, so the builder never grades its own output.
