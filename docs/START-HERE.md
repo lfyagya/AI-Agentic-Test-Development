@@ -325,7 +325,7 @@ flowchart LR
     GU --> E{"<b>EVALUATE</b><br/>pre-merge-qa-gate<br/><i>read-only</i>"}
     E -- "BLOCK — max 3" --> B
     E -- PASS --> X["<b>EXECUTE</b><br/>cypress"]
-    X -- failure --> DI["<b>DIAGNOSE</b><br/>cypress-bug-hunter"]
+    X -- failure --> DI["<b>DIAGNOSE</b><br/>cypress-debugger"]
     DI --> B
     X -- pass --> M["<b>MEASURE</b><br/>evidence.mjs"]
     M --> SH["<b>SHIP</b><br/><i>parent workflow</i>"]
@@ -361,7 +361,7 @@ cost of a ceremonial multi-agent pipeline.
 | -------- | --------------------- | ------ | --------------------------------------------------------- |
 | INTAKE   | `cypress-intake`      | sonnet | Verified context, requirements, and observed config before any test exists |
 | BUILD    | `cypress-generator`   | sonnet | Owns authoring for exactly one requirement                |
-| DIAGNOSE | `cypress-bug-hunter`  | opus   | Root cause + compliant fix; hardest reasoning             |
+| DIAGNOSE | `cypress-debugger`    | opus   | Root cause + compliant fix; hardest reasoning             |
 | EVALUATE | `pre-merge-qa-gate`   | opus   | **Read-only. A builder must never grade its own output.** |
 
 Shipping the PR and maintaining the harness are not agents — the parent workflow (a human or the
@@ -553,7 +553,7 @@ smoke runs against shared and production-like environments. Mutations belong in 
 
 ### Step 8 — DIAGNOSE a failure
 
-Invoke `cypress-bug-hunter` (opus). A fix that would violate a rule is not a fix, and a test that
+Invoke `cypress-debugger` (opus). A fix that would violate a rule is not a fix, and a test that
 passes for the wrong reason is a defect.
 
 ### Step 9 — MEASURE

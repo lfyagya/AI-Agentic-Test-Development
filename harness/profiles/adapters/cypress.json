@@ -135,7 +135,7 @@
       "when": "Build a module from a requirement id — config → commands → spec"
     },
     {
-      "name": "cypress-bug-hunter",
+      "name": "cypress-debugger",
       "role": "DIAGNOSE",
       "description": "Debug a failing smoke test, trace root cause, and propose an exact compliant fix.",
       "model": "opus",

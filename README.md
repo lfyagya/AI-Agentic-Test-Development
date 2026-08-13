@@ -51,7 +51,7 @@ are the parent workflow's job, not separate agents. Invoke at most one specialis
 | INTAKE | `cypress-intake` | Derive verified context and requirements, and capture observed selectors/routes into config |
 | BUILD | `cypress-generator` | Implement one active requirement |
 | EVALUATE | `pre-merge-qa-gate` | Independently grade and approve/block (read-only) |
-| DIAGNOSE | `cypress-bug-hunter` | Trace a reproducible failure to root cause |
+| DIAGNOSE | `cypress-debugger` | Trace a reproducible failure to root cause |
 
 ## Cross-tool glance
 
