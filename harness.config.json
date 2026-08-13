@@ -108,8 +108,8 @@
     },
     {
       "id": "one-requirement-tag",
-      "severity": "review",
-      "enforcement": "QA gate",
+      "severity": "block",
+      "enforcement": "Hook + CI",
       "never": "a spec with no requirement tag, or more than one",
       "instead": "exactly one known requirement id in the title and as a tag, plus Type, Priority, and tier tags",
       "why": "The title survives every reporter and the tag supports filtering; together they make coverage computable.",

@@ -37,6 +37,12 @@ const SAMPLES = {
     'describe("cart", () => { it("works", () => { cy.log("x"); }); });',
   ],
   "smoke-read-only": [SMOKE, 'cy.request("POST", "/api/orders", {});'],
+  // A test with no requirement id in its title and no tags. Path contains "public" so the auth
+  // rule stays silent and this sample isolates the tag rule.
+  "one-requirement-tag": [
+    "cypress/tests/cart/smoke/public-cart.cy.js",
+    'it("missing tags", () => {});',
+  ],
 };
 
 const blockRules = config.rules.filter((r) => r.severity === "block").map((r) => r.id);
@@ -77,7 +83,7 @@ assert.equal(
     'import { CART_UI } from "@configs/ui/modules/cart/cart.ui.js";\n' +
       'describe("[REQ-1] cart", () => {\n' +
       "  beforeEach(() => { cy.ensureAuthenticated(); });\n" +
-      '  it("[REQ-1] shows the cart", () => {\n' +
+      '  it("[REQ-1] shows the cart", { tags: ["@REQ-1", "@regression", "@P0", "@e2e"] }, () => {\n' +
       "    cy.get(CART_UI.LIST).should('be.visible');\n" +
       "  });\n" +
       "});\n",
