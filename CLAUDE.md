@@ -19,17 +19,22 @@ When sources disagree, stop and report the conflict. Tests do not redefine busin
 
 ## Lifecycle
 
-Use `project-bootstrapper` before `cypress-generator` for every new project or module.
-
 ```text
-GATHER → SPECIFY → BUILD → GUARD → EVALUATE → EXECUTE → DIAGNOSE → MEASURE
+INTAKE → SPECIFY → BUILD → GUARD → EVALUATE → EXECUTE → DIAGNOSE → MEASURE
 ```
 
-- GATHER creates verified project/module context and draft requirements.
+- INTAKE (`cypress-intake`) creates verified project/module context, draft requirements, and the
+  config constants a requirement will touch. Run it for a new project or module, or when application
+  behavior is unknown.
 - The owner approves requirements and promotes them to `active`.
-- BUILD accepts exactly one active requirement id.
-- EVALUATE is read-only and supplies the merge verdict.
+- BUILD (`cypress-generator`) accepts exactly one active requirement id.
+- EVALUATE (`pre-merge-qa-gate`) is read-only and supplies the merge verdict.
+- DIAGNOSE (`cypress-bug-hunter`) runs only after a reproducible failure.
 - Repairs are bounded by `loops.gateRepairLimit`.
+
+Four agents, invoked by condition — not a fixed pipeline. A routine change to a documented module
+goes straight to BUILD, then verify. Shipping (PR) and workflow maintenance are the parent workflow's
+job, not separate agents.
 
 The complete procedure is [`docs/START-HERE.md`](docs/START-HERE.md). How one policy is projected into
 Claude, Copilot, Cursor, and Codex — and which tools can refuse a write — is in

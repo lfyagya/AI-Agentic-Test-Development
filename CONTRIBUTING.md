@@ -40,7 +40,7 @@ flowchart TD
     J --> K{PASS?}
     K -- BLOCK --> L["Fix flagged issues"]
     L --> G
-    K -- Yes --> M(["pr-creator agent\nOpen PR"])
+    K -- Yes --> M(["Open PR\n(parent workflow)"])
 ```
 
 ---

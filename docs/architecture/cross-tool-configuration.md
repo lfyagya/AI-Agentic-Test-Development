@@ -88,8 +88,8 @@ flowchart TD
 
 ```text
 CLONE → npm ci → configure profile → COMPOSE → refresh skills canon → SYNC → drift check → verify
-  → GATHER → SPECIFY (owner approval) → DISCOVER? → BUILD → GUARD → EVALUATE
-  → EXECUTE → DIAGNOSE? → MEASURE → SHIP → merge → next requirement
+  → INTAKE → SPECIFY (owner approval) → BUILD → GUARD → EVALUATE
+  → EXECUTE → DIAGNOSE? → MEASURE → SHIP (parent workflow) → merge → next requirement
 ```
 
 `verify` on an empty new profile expects bootstrap. This repository's reference clone already has
@@ -97,13 +97,11 @@ two products smoke specs — verify runs them.
 
 | Phase | Agent | Skills used |
 |---|---|---|
-| GATHER | `project-bootstrapper` | — |
-| DISCOVER | `cypress-discovery` | `cypress-docs` |
+| INTAKE | `cypress-intake` | `cypress-docs` |
 | BUILD | `cypress-generator` | `cypress-author`, `cypress-docs` |
 | EVALUATE | `pre-merge-qa-gate` (read-only) | `cypress-explain` |
 | DIAGNOSE | `cypress-bug-hunter` | `cypress-author`, `cypress-explain`, `cypress-docs` |
-| SHIP | `pr-creator` | — |
-| MAINTAIN | `workflow-maintainer` | — |
+| SHIP | parent workflow (no agent) | — |
 
 ---
 

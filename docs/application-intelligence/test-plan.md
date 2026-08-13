@@ -12,7 +12,7 @@ Never put credentials or PII in requirement entries.
 harness/profiles/projects/<key>.json  →  compose + sync  →  harness.config.json
         │
         ▼
-docs/application-intelligence/**      →  verified context (GATHER)
+docs/application-intelligence/**      →  verified context (INTAKE)
         │
         ▼
 evidence/requirements.json            →  draft → owner promotes active
@@ -23,7 +23,7 @@ BUILD (cypress-generator)             →  one active id at a time
 
 ---
 
-## Fill prompt (paste into any AI, or use with project-bootstrapper)
+## Fill prompt (paste into any AI, or use with cypress-intake)
 
 ```text
 Create or update harness requirements for this project.
@@ -117,6 +117,6 @@ Optional planning fields (ignored by evidence validation if present): `path`, no
 
 ---
 
-## Optional at GATHER (not blockers)
+## Optional at INTAKE (not blockers)
 
 API contracts and CI/environment config help intake but are **not** required to start a profile or draft requirements. Record unknowns in `docs/application-intelligence/project-context.md`; do not invent contracts.

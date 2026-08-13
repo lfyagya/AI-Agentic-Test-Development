@@ -17,7 +17,7 @@ This is the only document you need. It is self-contained.
 | **Spec glob**    | `cypress/tests/**/*.cy.{js,ts}`        |
 | **Language**     | JavaScript, TypeScript opt-in per file |
 | **Rules**        | 9 — 8 blocking, 1 graded               |
-| **Agent roles**  | 7                                      |
+| **Agent roles**  | 4                                      |
 
 ---
 
@@ -117,7 +117,7 @@ cp harness/profiles/projects/_template.json harness/profiles/projects/<key>.json
 npm run harness:compose && npm run harness:sync && npm run harness:check
 ```
 
-You now have the full seven-role roster, every rule enforced at write time, enabled AI adapters
+You now have the full four-role roster, every rule enforced at write time, enabled AI adapters
 wired, and Cypress skills projected to `.claude/skills` + `.agents/skills`. A brand-new profile has
 no tests yet; this repository's `cypress-boilerplate` profile is already a reference instantiation
 with products smoke coverage. See [`harness/profiles/README.md`](../harness/profiles/README.md) and
@@ -319,9 +319,8 @@ without false positives.
 
 ```mermaid
 flowchart LR
-    G["<b>GATHER</b><br/>project-bootstrapper"] --> S["<b>SPECIFY</b><br/>human approves"]
-    S --> D["<b>DISCOVER</b><br/>cypress-discovery"]
-    D --> B["<b>BUILD</b><br/>cypress-generator"]
+    G["<b>INTAKE</b><br/>cypress-intake"] --> S["<b>SPECIFY</b><br/>human approves"]
+    S --> B["<b>BUILD</b><br/>cypress-generator"]
     B --> GU["<b>GUARD</b><br/>local checks"]
     GU --> E{"<b>EVALUATE</b><br/>pre-merge-qa-gate<br/><i>read-only</i>"}
     E -- "BLOCK — max 3" --> B
@@ -329,12 +328,16 @@ flowchart LR
     X -- failure --> DI["<b>DIAGNOSE</b><br/>cypress-bug-hunter"]
     DI --> B
     X -- pass --> M["<b>MEASURE</b><br/>evidence.mjs"]
-    M --> SH["<b>SHIP</b><br/>pr-creator"]
+    M --> SH["<b>SHIP</b><br/><i>parent workflow</i>"]
 
     style S fill:#e6f4ea,stroke:#34a853,color:#111
     style E fill:#fef7e0,stroke:#f9ab00,color:#111
     style DI fill:#fce8e6,stroke:#ea4335,color:#111
 ```
+
+INTAKE folds context-gathering and application discovery into one agent. SHIP (opening the PR) and
+harness maintenance are handled by whoever drives the workflow — a human or the parent agent — not by
+dedicated agents.
 
 The `EVALUATE → BUILD` repair loop carries a declared bound, `loops.gateRepairLimit` (3), and it is
 worth being precise about what that is: **an instruction, not a counter.** The limit is validated when
@@ -347,22 +350,22 @@ it prevented rather than recorded, the enforcement point is whatever drives the 
 
 ### 5.1 The roster
 
-The roster is a set of bounded routes, not seven agents to invoke for every change. Use the parent
-workflow for routine work and invoke only the specialist whose `when` condition matches: GATHER once
-per new project/module, DISCOVER only for unknown application behavior, DIAGNOSE only after a
-reproducible failure, and MAINTAIN only for harness changes. BUILD and the independent read-only
-EVALUATE gate are the normal test-authoring separation. This keeps the safety boundary without paying
-the coordination cost of a ceremonial multi-agent pipeline.
+The roster is a set of bounded routes, not four agents to invoke for every change. Use the parent
+workflow for routine work and invoke only the specialist whose `when` condition matches: INTAKE once
+per new project/module or when application behavior is unknown, and DIAGNOSE only after a reproducible
+failure. BUILD and the independent read-only EVALUATE gate are the normal test-authoring separation.
+Invoke at most one specialist per task. This keeps the safety boundary without paying the coordination
+cost of a ceremonial multi-agent pipeline.
 
-| Role     | Agent                  | Model  | Why it is separate                                        |
-| -------- | ---------------------- | ------ | --------------------------------------------------------- |
-| GATHER   | `project-bootstrapper` | sonnet | Verified context before any test exists                   |
-| DISCOVER | `cypress-discovery`    | sonnet | Observes the app; never decides intent                    |
-| BUILD    | `cypress-generator`    | sonnet | Owns authoring for exactly one requirement                |
-| DIAGNOSE | `cypress-bug-hunter`   | opus   | Root cause + compliant fix; hardest reasoning             |
-| EVALUATE | `pre-merge-qa-gate`    | opus   | **Read-only. A builder must never grade its own output.** |
-| SHIP     | `pr-creator`           | sonnet | PR with the standard generated description                |
-| MAINTAIN | `workflow-maintainer`  | sonnet | Simplify without duplicating ownership                    |
+| Role     | Agent                 | Model  | Why it is separate                                        |
+| -------- | --------------------- | ------ | --------------------------------------------------------- |
+| INTAKE   | `cypress-intake`      | sonnet | Verified context, requirements, and observed config before any test exists |
+| BUILD    | `cypress-generator`   | sonnet | Owns authoring for exactly one requirement                |
+| DIAGNOSE | `cypress-bug-hunter`  | opus   | Root cause + compliant fix; hardest reasoning             |
+| EVALUATE | `pre-merge-qa-gate`   | opus   | **Read-only. A builder must never grade its own output.** |
+
+Shipping the PR and maintaining the harness are not agents — the parent workflow (a human or the
+driving agent) owns them, using `npm run verify` and the standard PR template directly.
 
 `pre-merge-qa-gate` has `permissionMode: plan` and `tools: [Read, Grep, Glob]` — no Write, no Bash.
 That restriction is the entire reason the gate is trustworthy, and it is **declared in config**, not
@@ -388,9 +391,9 @@ When two sources disagree, the agent stops and reports the conflict. It does not
 
 Section 2.3. Do not skip it.
 
-### Step 1 — GATHER verified project context
+### Step 1 — INTAKE: verified project context
 
-Invoke `project-bootstrapper`:
+Invoke `cypress-intake`:
 
 ```text
 Start project intake for <project>.
@@ -470,11 +473,12 @@ The registry is only `evidence/requirements.json` — do not create a parallel t
 `acceptanceCriteria` or `preconditions`, or uses a value outside `SMOKE|REGRESSION` / `P0|P1|P2` /
 `smoke|e2e|ddt`. Ids must be unique. Automate P0 first; keep unclear items in `draft`.
 
-### Step 3 — DISCOVER, only if selectors are unknown
+### Step 3 — Discover selectors, only if they are unknown
 
-Invoke `cypress-discovery`. It uses `npm run cy:open` — the Selector Playground and command-log
-time-travel. Cypress has no `codegen`. Output is **config constants only**; writing a command or spec
-here bypasses the BUILD role.
+`cypress-intake` also owns discovery. When a module's selectors or routes are unknown, have it use
+`npm run cy:open` — the Selector Playground and command-log time-travel (Cypress has no `codegen`) —
+and capture **config constants only**; writing a command or spec here bypasses the BUILD role. Skip
+this step for a module whose config already exists.
 
 ### Step 4 — BUILD one requirement
 

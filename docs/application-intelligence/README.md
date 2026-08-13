@@ -1,6 +1,6 @@
 # Application Intelligence
 
-This directory starts with templates only. `project-bootstrapper` creates project and module
+This directory starts with templates only. `cypress-intake` creates project and module
 contracts from verified sources; the framework generator does not invent them.
 
 1. Copy [`_template/project-context.md`](_template/project-context.md) to `project-context.md`.
