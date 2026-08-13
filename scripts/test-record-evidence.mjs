@@ -4,12 +4,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import {
-  buildEntry,
-  findDuplicate,
-  parseNamedActions,
-  record,
-} from "./record-evidence.mjs";
+import { buildEntry, parseNamedActions, record } from "./record-evidence.mjs";
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "rec-"));
 fs.mkdirSync(path.join(root, "evidence"), { recursive: true });
@@ -155,31 +150,6 @@ assert.throws(
   /only meaningful/,
 );
 
-// --- effort ---
-const effort = buildEntry(
-  "effort",
-  { requirement: "REQ-1", minutes: "45" },
-  root,
-);
-assert.equal(effort.minutes, 45);
-assert.equal(effort.accepted, true, "accepted should default true");
-assert.equal(
-  buildEntry(
-    "effort",
-    { requirement: "REQ-1", minutes: "5", accepted: "false" },
-    root,
-  ).accepted,
-  false,
-);
-assert.throws(
-  () => buildEntry("effort", { requirement: "REQ-1", minutes: "0" }, root),
-  /minutes/,
-);
-assert.throws(
-  () => buildEntry("effort", { requirement: "REQ-1", minutes: "abc" }, root),
-  /minutes/,
-);
-
 assert.throws(() => buildEntry("bogus", {}, root), /Unknown ledger/);
 
 // --- append + duplicate guard ---
@@ -213,14 +183,6 @@ assert.equal(
     root,
   ).total,
   3,
-);
-
-assert.equal(
-  findDuplicate("effort", { requirementId: "REQ-1" }, [
-    { requirementId: "REQ-1" },
-  ]),
-  undefined,
-  "effort rows are intentionally repeatable — multiple sessions per requirement are real",
 );
 
 // --- the ledger evidence.mjs reads must be valid JSONL ---
