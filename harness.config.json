@@ -17,7 +17,7 @@
     }
   },
   "project": {
-    "name": "cypress-automation-boilerplate",
+    "name": "cypress-ai-agentic-test-development",
     "architecture": "Config → Commands → Tests",
     "testRoot": "cypress",
     "configRoot": "cypress/configs",

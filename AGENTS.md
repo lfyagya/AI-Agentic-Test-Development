@@ -1,6 +1,6 @@
 <!-- GENERATED FROM harness.config.json — DO NOT EDIT. Change harness.config.json, then run npm run harness:sync. npm run harness:check fails on drift. -->
 
-# AGENTS.md — cypress-automation-boilerplate
+# AGENTS.md — cypress-ai-agentic-test-development
 
 Codex reads this file before starting work. Architecture: **Config → Commands → Tests**. The full
 framework contract is `CLAUDE.md`; application behavior is
