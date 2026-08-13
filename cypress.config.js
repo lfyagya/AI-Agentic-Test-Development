@@ -27,7 +27,8 @@ function loadEnvConfig(configFile) {
 module.exports = defineConfig({
   // ── Global Config ──
   allowCypressEnv: false,
-  chromeWebSecurity: false,
+  // chromeWebSecurity: Cypress default (true). Do not disable unless a verified requirement
+  // needs cross-origin frame access; document that requirement before changing.
   video: false,
   screenshotOnRunFailure: true,
   viewportWidth: 1920,

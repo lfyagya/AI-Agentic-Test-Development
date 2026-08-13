@@ -1,4 +1,4 @@
 {
   "name": "Cypress Automation Boilerplate",
-  "install": "npm ci"
+  "install": "node -e \"const major = Number(process.versions.node.split('.')[0]); if (!Number.isFinite(major) || major < 22) { console.error('Node.js 22+ required; found ' + process.version); process.exit(1); }\" && npm ci"
 }
