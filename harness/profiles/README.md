@@ -45,8 +45,8 @@ npm run harness:sync
 npm run harness:check
 ```
 
-That yields the full seven-role roster, every rule enforced at write time, and both AI adapters wired
-— with no test in the repo. Verify the empty state, then begin intake at
+That yields the full seven-role roster, every rule enforced at write time, and enabled AI adapters
+wired. For a **new empty profile**, verify bootstrap (no specs), then begin intake at
 [`docs/START-HERE.md`](../../docs/START-HERE.md):
 
 ```bash
@@ -57,7 +57,11 @@ npm test
 npm run evidence:build
 ```
 
-Both must pass and `evidence:build` must report `bootstrap`.
+Both must pass; on an empty profile `evidence:build` reports `bootstrap`.
+
+This repository's own profile (`projects/cypress-boilerplate.json`) is the **reference
+instantiation** — it already includes two active products requirements and smoke specs. Re-compose
+it with `npm run harness:compose` as below; do not expect bootstrap here.
 
 ## Re-composing this repo
 

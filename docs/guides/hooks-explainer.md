@@ -8,7 +8,9 @@
 
 A **hook** is a piece of code that runs automatically at a specific moment in a workflow — without you asking for it.
 
-In this framework, hooks are Node.js scripts that Claude Code runs at key moments during an AI-assisted session. They sit between Claude's intent and the file system, silently watching and enforcing rules.
+In this framework, hooks are Node.js scripts that supported AI tools run at key moments during an
+assisted session. They sit between the model's intent and the file system, silently watching and
+enforcing rules.
 
 Think of them as the framework's immune system: they catch bad patterns before they reach your codebase.
 
@@ -18,22 +20,25 @@ Think of them as the framework's immune system: they catch bad patterns before t
 
 ### Who runs the hooks?
 
-**Claude Code** — the AI agent inside VS Code (not Cypress, not Node, not you).
+**Claude Code, GitHub Copilot, and Cursor** — via each tool's PreToolUse / preToolUse (and related)
+hook APIs. Codex has no write-time hook API; it relies on `npm run verify`, pre-push, and CI.
 
-Hooks only fire when Claude Code is active in this repository. If a human types code directly in a file and saves it, hooks do **not** run. Hooks are an AI guardrail, not a human linter. For human-side enforcement, use `npm run lint` and the pre-merge checklist.
+Hooks only fire during those AI tool sessions. If a human types code directly in a file and saves
+it, hooks do **not** run. Hooks are an AI guardrail, not a human linter. For human-side enforcement,
+use `npm run lint`, `npm run check:rules`, and the pre-merge checklist.
 
 ---
 
 ### What do the hooks do?
 
-This framework has four hooks. Each has a single, specific job:
+This framework has four shared hook scripts under `.claude/hooks/`. Each has a single job:
 
-| Hook file                        | When it fires                        | What it does                                                                                                                        |
-| -------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `prompt-duplication-guard.mjs`   | When you submit a prompt to Claude   | Detects if you're asking Claude to create a new config, command, or spec — and reminds Claude to search for an existing match first |
-| `pre-validate-cypress-rules.mjs` | Before Claude writes or edits a file | Scans the proposed content for rule violations and **blocks** the write if any are found                                            |
-| `validate-cypress-rules.mjs`     | After Claude writes or edits a file  | Safety net scan of the actual written content — prints a warning if a violation slipped through                                     |
-| `session-end-reminder.mjs`       | When Claude finishes a session       | Checks `git status` — if Cypress files changed, prints the pre-merge checklist                                                      |
+| Hook file | When it fires | What it does |
+| --- | --- | --- |
+| `prompt-duplication-guard.mjs` | On prompt submit (Claude) | Reminds the agent to search before creating a new config, command, or spec |
+| `pre-validate-cypress-rules.mjs` | Before Edit/Write (Claude, Copilot, Cursor) | Scans proposed content and **blocks** the write on violation (exit 2) |
+| `validate-cypress-rules.mjs` | After Edit/Write; also CI via `--all` / `--base-ref` | Safety-net scan; CI uses the same scanner on the tree |
+| `session-end-reminder.mjs` | On session stop (Claude) | If Cypress files changed, prints the pre-merge checklist |
 
 The pre-write hook **blocks**. The post-write hook **warns**. Together they create a two-layer safety net.
 
@@ -43,7 +48,7 @@ The pre-write hook **blocks**. The post-write hook **warns**. Together they crea
 
 Because AI writes fast — and fast writing without guardrails produces the exact problems this framework was built to prevent.
 
-Without hooks, Claude could:
+Without hooks, an agent could:
 
 - Write `cy.wait(3000)` instead of `cy.apiWait('@alias')` — flaky test
 - Hardcode `cy.get('.btn-primary')` instead of using a config constant — brittle selector
@@ -129,21 +134,26 @@ Rules are defined in `shared-rules.mjs` and apply to all `.cy.js`, `.commands.js
 Hooks do not help — and should not be expected to help — in these situations:
 
 **1. Human-written code**
-Hooks only fire during Claude Code sessions. If a developer writes `cy.wait(2000)` manually and commits it, no hook fires. Use `npm run lint` and the CI validator (`node .claude/hooks/validate-cypress-rules.mjs --base-ref main`) for human-written code.
+Hooks only fire during Claude / Copilot / Cursor tool calls. If a developer writes `cy.wait(2000)`
+manually and commits it, no hook fires. Use `npm run check:rules` and CI for human-written code.
 
 **2. Non-Cypress files**
-The hook scanner targets `cypress/**/*.js` files only. Changes to `package.json`, `cypress.config.js`, docs, or any file outside `cypress/` are not scanned.
+The hook scanner targets Cypress test/command files only. Changes to `package.json`,
+`cypress.config.js`, docs, or other non-target paths are not scanned.
 
 **3. Deliberate exceptions**
-Some literal values are legitimate (e.g. `cy.get('body')` for global page state checks). These are listed in `cypress-hook-allowlist.json`. If you get a false positive, add the value to the allowlist and document the reason in `cypress-hook-allowlist-governance.md`. Do not modify the rule itself.
+Some literal values are legitimate (e.g. `cy.get('body')` for global page state checks). These are
+listed in `cypress-hook-allowlist.json`. If you get a false positive, add the value to the allowlist
+and document the reason in `cypress-hook-allowlist-governance.md`. Do not modify the rule itself.
 
-**4. Copilot and Cursor (write-time)**
-The same pre-write script runs under Claude (`PreToolUse`), Copilot (`.github/hooks` `PreToolUse`,
-exit 2 denies), and Cursor (`.cursor/hooks.json` `preToolUse`, exit 2 denies). Codex has no hook
-API. Human edits and any missed hook still rely on `npm run verify` / pre-push / CI.
+**4. Codex**
+Codex has no hook API. Its write-time path is guidance (`AGENTS.md`) plus the universal floor
+(`npm run verify` / pre-push / CI).
 
 **5. Framework-internal files**
-`cypress/support/core/api/` (the API engine) contains intentional technical patterns that may look like violations. These files are not test code — they are framework internals. The `TARGET_FILE_RE` regex in `shared-rules.mjs` is designed to exclude them, but if you modify core files, verify the scanner does not flag legitimate patterns.
+`cypress/support/core/api/` (the API engine) contains intentional technical patterns that may look
+like violations. The `TARGET_FILE_RE` regex in `shared-rules.mjs` is designed to exclude them, but if
+you modify core files, verify the scanner does not flag legitimate patterns.
 
 ---
 

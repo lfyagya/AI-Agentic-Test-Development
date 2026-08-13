@@ -220,7 +220,7 @@ For **major version upgrades**, check the Cypress migration guide for breaking c
 
 ## How to Debug a CI Failure Locally
 
-1. Check video artifacts in `cypress/videos/` for visual playback of the failure
+1. Check failure screenshots under `cypress/screenshots/` (videos are off by default; `video: false`)
 2. Check JUnit XML in `reports/junit/` for structured failure data
 3. Run the specific failing spec in isolation:
 

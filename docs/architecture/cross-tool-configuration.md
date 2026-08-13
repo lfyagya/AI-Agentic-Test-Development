@@ -87,10 +87,13 @@ flowchart TD
 ### Lifecycle (agentic workflow)
 
 ```text
-CLONE → npm ci → configure profile → COMPOSE → refresh skills canon → SYNC → drift check → verify empty
+CLONE → npm ci → configure profile → COMPOSE → refresh skills canon → SYNC → drift check → verify
   → GATHER → SPECIFY (owner approval) → DISCOVER? → BUILD → GUARD → EVALUATE
   → EXECUTE → DIAGNOSE? → MEASURE → SHIP → merge → next requirement
 ```
+
+`verify` on an empty new profile expects bootstrap. This repository's reference clone already has
+two products smoke specs — verify runs them.
 
 | Phase | Agent | Skills used |
 |---|---|---|
@@ -201,19 +204,19 @@ AGENTS.md
 
 ## 9. Correct configuration sequence
 
-1. Configure project profile  
-2. Compose `harness.config.json`  
-3. Install/pin official Cypress skills into `harness/skills` (`npm run harness:skills`)  
-4. Sync enabled tool projections  
-5. Remove stale projections for disabled tools (automatic on sync)  
-6. Check projection drift  
-7. Verify empty harness  
-8. Gather verified application context  
-9. Approve active requirements  
-10. Build one requirement  
-11. Guard and independently evaluate  
-12. Execute  
-13. Diagnose failures through bounded repair  
-14. Measure evidence and traceability  
-15. Create PR  
+1. Configure project profile
+2. Compose `harness.config.json`
+3. Install/pin official Cypress skills into `harness/skills` (`npm run harness:skills`)
+4. Sync enabled tool projections
+5. Remove stale projections for disabled tools (automatic on sync)
+6. Check projection drift
+7. Verify (bootstrap on empty profile; this reference clone runs products smoke)
+8. Gather verified application context
+9. Approve active requirements
+10. Build one requirement
+11. Guard and independently evaluate
+12. Execute
+13. Diagnose failures through bounded repair
+14. Measure evidence and traceability
+15. Create PR
 16. Merge, then process the next requirement  

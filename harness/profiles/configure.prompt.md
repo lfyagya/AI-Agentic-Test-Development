@@ -28,7 +28,7 @@ Task:
   key, displayName, owner, adapter (cypress), language, projectName, repo, adapters enabled flags for claude/copilot/cursor/codex.
 - Omit the overrides block unless this project genuinely differs from adapter defaults.
 - Adapters: enable each AI tool the team actually uses. If I am unsure, leave claude and copilot enabled and cursor/codex disabled. Never disable all adapters.
-- Be accurate: only Claude Code can refuse a violating write (PreToolUse hook); Copilot, Cursor, and Codex get the same rules as guidance — their real gate is npm run verify and the pre-push hook. See docs/architecture/cross-tool-configuration.md.
+- Be accurate: Claude Code, Copilot, and Cursor can refuse violating writes through generated pre-tool hooks. Codex has no hook API and relies on `npm run verify` plus the pre-push hook; those floor checks also cover human edits and hook misses. See docs/architecture/cross-tool-configuration.md.
 - After sync, official Cypress skills live under harness/skills/cypress/* and are projected to .claude/skills and .agents/skills. Refresh with `npm run harness:skills` when upstream changes; do not invent skill content by hand.
 - Optional at this step (not required to start): API contracts, CI details — record as unknown for project-bootstrapper / application-intelligence later.
 - Never put passwords, tokens, or PII in the profile.
@@ -61,7 +61,7 @@ Project hints I already know (optional):
 npm run harness:compose   # if using the boilerplate profile script, or compose with --profile as above
 npm run harness:sync
 npm run harness:check
-npm run verify            # empty harness must still pass (bootstrap)
+npm run verify            # empty profile: bootstrap; this repo's reference clone runs products smoke
 ```
 
 `output/` and any profile-report artifacts stay gitignored. There is **no** `build_project_profiles_report` script — this prompt + profile file is the configuration step.

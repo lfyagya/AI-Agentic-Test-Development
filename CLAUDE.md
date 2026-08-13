@@ -1,7 +1,9 @@
 # Cypress Harness Instructions
 
-This repository is an empty, application-agnostic QA harness. Do not invent an application,
-requirement, selector, route, credential, or expected result.
+This repository is the **reference instantiation** of the Cypress AI harness: harness policy plus a
+verified Automation Exercise `products` module (`AE-PRODUCTS-001`, `AE-PRODUCTS-002`). Do not invent
+an application fact, requirement, selector, route, credential, or expected result beyond
+`evidence/requirements.json` and `docs/application-intelligence/**`.
 
 ## Source precedence
 
@@ -76,10 +78,14 @@ NEVER  →  a spec with no requirement tag, or more than one                 exa
 
 <!-- HARNESS:RULES:END -->
 
-## Empty state
+## Reference vs empty intake
 
-Zero tests is valid before project intake. `npm test` must pass without launching Cypress, and
-`npm run evidence:build` must produce bootstrap metrics with explicit unavailable reasons.
+This clone ships two active products smoke specs. `npm test` runs them; `npm run evidence:build`
+expects a report and should reach `metrics.status: "ready"` when titles carry requirement ids.
+
+Zero tests remains valid for a brand-new profile before intake: `npm test` reports bootstrap without
+launching Cypress, and `evidence:build` produces bootstrap metrics with explicit unavailable
+reasons.
 
 ## Verification
 
