@@ -59,6 +59,10 @@ module.exports = defineConfig({
   },
 
   e2e: {
+    // Non-secret default target: the public Automation Exercise site. Overridable per environment
+    // via cypress/environments/cypress.env.{env}.json or a CI-provided cypress.env.json baseUrl
+    // (applied in setupNodeEvents below).
+    baseUrl: "https://www.automationexercise.com",
     specPattern: "cypress/tests/**/*.cy.{js,ts}",
     supportFile: "cypress/support/e2e.js",
     fixturesFolder: "cypress/fixtures",
@@ -92,7 +96,10 @@ module.exports = defineConfig({
       config.env = { ...config.env, ...envConfig };
 
       // ── Base URL from env ──
-      if (config.env.baseUrl && !config.baseUrl) {
+      // A selected env file or CI-written cypress.env.json (config.env.baseUrl) overrides the
+      // non-secret default baseUrl set below. This keeps private environments configurable
+      // through a BASE_URL secret while the public target works with no secret at all.
+      if (config.env.baseUrl) {
         config.baseUrl = config.env.baseUrl;
       }
 

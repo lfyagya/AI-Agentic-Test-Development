@@ -37,6 +37,15 @@ declare namespace Cypress {
     /** Asserts the current pathname equals a configured route. */
     assertCurrentPath(path: string): Chainable<void>;
 
+    // --- Products -------------------------------------------------------------------------------
+    /** Opens the All Products listing route from `cypress/configs/app/routes.js`. */
+    visitProducts(): Chainable<void>;
+    /**
+     * Asserts the All Products heading is visible and the listing card grid holds at least
+     * `minCount` product cards (default 1) with a non-empty product name.
+     */
+    assertProductsListingVisible(minCount?: number): Chainable<void>;
+
     // --- Elements -------------------------------------------------------------------------------
     /** Resolves an element by its test attribute. Prefer a UI config constant for the id. */
     getByTestId(

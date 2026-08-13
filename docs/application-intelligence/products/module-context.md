@@ -1,74 +1,68 @@
-# Module Context
+# Products Module Context
 
-Status: `VERIFIED` (products catalog API) · `DRAFT` (UI listing, search)
+Status: `ACTIVE` (catalog API and products listing UI)
 
 ## Identity and evidence
 
-| Field             | Value                                                                    |
-| ----------------- | ------------------------------------------------------------------------ |
-| Module            | `products`                                                               |
-| Business owner    | Harness maintainers                                                      |
-| Source references | `https://automationexercise.com/api_list` (API 1, API 3); live responses |
-| Last verified     | 2026-08-13                                                               |
+| Field             | Value                                                                                                           |
+| ----------------- | --------------------------------------------------------------------------------------------------------------- |
+| Module            | `products`                                                                                                      |
+| Business owner    | Yagya Bhatta — pending formal confirmation                                                                      |
+| Source references | Published API list; live `GET /api/productsList`; live unauthenticated `GET /products`; owner-approved UI slice |
+| Last verified     | `2026-08-13`                                                                                                    |
 
 ## Business intent
 
-Shoppers must be able to browse the product catalog. If the catalog API is down or returns an empty
-or malformed list, the storefront has nothing to sell — this is the first thing a smoke check should
-confirm on any environment.
+Anonymous visitors must be able to retrieve and view a non-empty product catalog. The API smoke
+detects transport/payload/shape failures, while the UI smoke detects a missing heading or empty,
+non-visible card grid. Search, filters, product detail, cart, and authentication remain out of scope.
 
-## Actors, permissions, and preconditions
+## Actors and safety
 
-| Actor or role | Allowed behavior             | Preconditions | Denied behavior |
-| ------------- | ---------------------------- | ------------- | --------------- |
-| Anonymous     | Read product & brand catalog | None (public) | Any mutation    |
+| Actor             | Allowed behavior                                                   | Preconditions                   | Denied behavior       |
+| ----------------- | ------------------------------------------------------------------ | ------------------------------- | --------------------- |
+| Anonymous visitor | Read `GET /api/productsList`; open `/products`; view product cards | Public site reachable; no login | All mutation in smoke |
 
-## States and transitions
+Both active requirements are read-only and create no test data, so isolation and cleanup are not
+applicable. Credentials, PII, and payment data remain forbidden.
 
-| Starting state | Action                  | Expected state      | Observable evidence                                  |
-| -------------- | ----------------------- | ------------------- | ---------------------------------------------------- |
-| Catalog online | `GET /api/productsList` | Catalog returned    | HTTP `200`; body `products[]` non-empty; items typed |
-| Catalog online | `GET /api/brandsList`   | Brand list returned | HTTP `200`; body `brands[]` non-empty                |
+## Verified states
 
-## Technical contract
+| Requirement       | Action                  | Expected state   | Observable evidence                                                                                      |
+| ----------------- | ----------------------- | ---------------- | -------------------------------------------------------------------------------------------------------- |
+| `AE-PRODUCTS-001` | `GET /api/productsList` | Catalog returned | HTTP `200`; payload `responseCode: 200`; non-empty `products[]`; every product has `id`, `name`, `price` |
+| `AE-PRODUCTS-002` | Open `/products`        | Listing shown    | `All Products` heading; visible listing region; at least one card and visible non-empty product name     |
 
-- Routes: UI listing at `/products` (verified `200`; not yet coded — UI slice).
-- API requests and responses (verified live 2026-08-13):
-  - `GET https://automationexercise.com/api/productsList`
-    → `200`, `{ "responseCode": 200, "products": [ { "id", "name", "price", "brand", "category" } ] }`
-  - `GET https://automationexercise.com/api/brandsList`
-    → `200`, `{ "responseCode": 200, "brands": [ { "id", "brand" } ] }`
-  - Quirk: the transport status is `200` and the payload also carries its own `responseCode` field.
-- Stable selectors: none verified yet (site uses `.features_items`, `.productinfo` — UI slice will verify).
-- Loading and error states: not applicable to the direct API smoke.
-- External dependencies: the public Automation Exercise API.
+### API catalog {#api-catalog}
 
-## Test-data lifecycle
+- Published endpoint: `GET https://automationexercise.com/api/productsList`.
+- Verified response: HTTP `200` with `{ "responseCode": 200, "products": [...] }`.
+- `PRODUCTS_API.LIST` owns the method, endpoint, alias, and expected status in
+  `cypress/configs/api/modules/products/products.api.js`.
+- Some non-browser clients receive HTTP `403`; the Cypress request path was verified live.
 
-- Synthetic data shape: none — reads only.
-- Creation mechanism: none.
-- Isolation key: none required (read-only).
-- Failure-safe cleanup: none required (no state created).
-- Forbidden data: no credentials, PII, or payment data.
+### Listing grid {#listing-grid}
 
-## Risks and candidate scenarios
+- Route `/products` and title `Automation Exercise - All Products` verified unauthenticated.
+- Presentation is a card grid, not an HTML `<table>` or `role="grid"`.
+- The observed count was 34, but this is not a stable invariant; acceptance requires at least one.
+- `ROUTES.PRODUCTS` owns the route.
+- `PRODUCTS_UI` owns `.features_items`, `.product-image-wrapper`, `.productinfo p`, and heading text
+  because the third-party application exposes no test attributes. Visible text is used where stable.
 
-| Risk                         | Candidate behavior                     | Suggested Type | Suggested Priority | Evidence             |
-| ---------------------------- | -------------------------------------- | -------------- | ------------------ | -------------------- |
-| Catalog API down/empty       | Products list returns 200 with items   | SMOKE          | P0                 | `AE-PRODUCTS-001`    |
-| Brand facet broken           | Brand list returns 200 with items      | SMOKE          | P1                 | Candidate (draft)    |
-| Product listing UI regressed | `/products` grid renders product cards | REGRESSION     | P1                 | Candidate (UI slice) |
+## Risks and decisions
 
-## Unknowns
-
-| Question                     | Owner   | Blocking?           | Resolution           |
-| ---------------------------- | ------- | ------------------- | -------------------- |
-| Stable UI selector attribute | Harness | Blocks UI specs     | Resolve in UI slice  |
-| Synthetic account lifecycle  | Harness | Blocks mutating E2E | Resolve in E2E slice |
+| Item                | Resolution                                                               |
+| ------------------- | ------------------------------------------------------------------------ |
+| Exact catalog size  | Assert non-empty only; never hard-code 34                                |
+| Product shape       | Assert `id`, `name`, and `price` for every API product                   |
+| Selector strategy   | Visible heading text plus centralized verified CSS fallback              |
+| Public CI target    | Approved for these read-only smoke checks                                |
+| Mutating/auth flows | Deferred until a separately approved requirement and synthetic lifecycle |
 
 ## Approval
 
-- [x] Business behavior matches the authoritative source.
-- [x] Routes, APIs, selectors, and expected outcomes are verified (API scope).
-- [x] Data creation and cleanup are safe (read-only).
-- [x] Unknowns that affect assertions or safety are resolved (for the smoke scope).
+- [x] Business behavior matches the authoritative sources.
+- [x] Routes, APIs, selectors, and expected outcomes are verified.
+- [x] Both active requirements are read-only and data-safe.
+- [x] Assertion strength and selector decisions are resolved.

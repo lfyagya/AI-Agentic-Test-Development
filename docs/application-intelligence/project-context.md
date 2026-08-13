@@ -1,63 +1,67 @@
 # Project Context
 
-Status: `VERIFIED` (products API scope) · `DRAFT` (UI and auth scope)
+Status: `ACTIVE` (products API and listing UI)
 
 ## Ownership and sources
 
-| Field                  | Value                                                          |
-| ---------------------- | -------------------------------------------------------------- |
-| Project                | Automation Exercise (demo target under test)                   |
-| Accountable owner      | QA automation team (harness maintainers)                       |
-| Application repository | Third-party public demo — no source access                     |
-| Requirement source     | `https://automationexercise.com/api_list` (published API list) |
-| API/schema source      | `https://automationexercise.com/api_list` (no OpenAPI/Swagger) |
-| Last verified          | 2026-08-13                                                     |
+| Field                  | Value                                                                        |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| Project                | Automation Exercise public practice application                              |
+| Accountable owner      | Yagya Bhatta — pending formal confirmation                                   |
+| Application repository | Third-party public site; no first-party source in this worktree              |
+| Requirement sources    | Published API list, live public application, owner-approved UI listing slice |
+| Last verified          | `2026-08-13`                                                                 |
 
-## Environments and safety
+## Environment and safety
 
-| Environment | Base URL                         | Data class         | Allowed operations                          | Approval |
-| ----------- | -------------------------------- | ------------------ | ------------------------------------------- | -------- |
-| Production  | `https://automationexercise.com` | Shared public demo | Read-only smoke (GET product/brand catalog) | Harness  |
-| Development | `<none — single public site>`    | Shared public demo | Synthetic account create/delete for E2E     | Harness  |
-| QA          | `<none — single public site>`    | Shared public demo | Synthetic account create/delete for E2E     | Harness  |
+| Environment          | Base URL                             | Data class          | Allowed operations                       | Approval              |
+| -------------------- | ------------------------------------ | ------------------- | ---------------------------------------- | --------------------- |
+| Shared public target | `https://www.automationexercise.com` | Shared demo catalog | Read-only products API and listing smoke | Approved `2026-08-13` |
 
-Supply `baseUrl` at runtime through `cypress.env.json` (gitignored) or the `BASE_URL` CI secret, as
-`.github/workflows/cypress.yml` already does. The read-only product/brand catalog smoke calls the
-documented absolute API endpoints directly and does not require `baseUrl`.
+- `BASE_URL` is public and non-secret. It is configured in `cypress.config.js`, tracked environment
+  files, and CI runtime configuration with optional secret/variable overrides.
+- The API smoke uses its documented absolute endpoint and does not depend on `baseUrl`.
+- No credentials or created test data are needed for `AE-PRODUCTS-001` or `AE-PRODUCTS-002`.
+- Any future register/login/delete flow requires a separate active mutating requirement, synthetic
+  identity generation, and failure-safe cleanup.
 
-## Contracts to verify
+## Verified contracts
 
-- Authentication and roles: UI `Signup / Login`; API `POST /api/verifyLogin` (email, password),
-  `POST /api/createAccount`, `DELETE /api/deleteAccount`. No shared credential — each run registers a
-  synthetic account. Auth scope is not yet built (deferred to the E2E slice).
-- Stable selector attribute: none. The site uses semantic CSS classes/ids (for example
-  `.features_items`, `.productinfo`), not `data-*` hooks. UI selectors are unverified until the UI slice.
-- Supported browsers: Chrome (verified 148) and bundled Electron.
-- API dependencies: `GET /api/productsList` and `GET /api/brandsList` return HTTP `200` with a JSON
-  body carrying a `responseCode` field and a `products`/`brands` array. Verified live 2026-08-13.
-- Test-data creation and cleanup: product/brand reads create no data. The future account E2E must
-  register a synthetic user via `createAccount` and remove it via `deleteAccount` (failure-safe).
-- External integrations: none required for the smoke scope.
-- Accessibility or regulatory obligations: none for a public demo.
-- CI lanes and branch policy: GitHub Actions `cypress.yml` (smoke on PR, e2e on push) writes
-  `cypress.env.json` from repository secrets.
+- Public products API: `GET /api/productsList` returns HTTP `200`, payload `responseCode: 200`, and
+  non-empty `products[]`; active requirement `AE-PRODUCTS-001`.
+- Public products UI: `/products` renders `All Products` and a non-empty visible card listing;
+  active requirement `AE-PRODUCTS-002`.
+- Stable test attributes: none. UI config centralizes verified CSS fallbacks; visible text is used
+  where stable.
+- Browser evidence: Chrome and bundled Electron runs are supported by the harness; the UI smoke was
+  verified in the available browser runtime.
+
+## Mutation policy
+
+- Shared public smoke is read-only.
+- Product/brand reads and products listing observation are allowed.
+- Cart, search submission, account operations, and other mutations are not active in this scope.
 
 ## Modules
 
-| Module     | Business owner | Risk                                   | Context status                   |
-| ---------- | -------------- | -------------------------------------- | -------------------------------- |
-| `products` | Harness        | Catalog API unavailable → store broken | `VERIFIED` (API); UI/E2E `DRAFT` |
+| Module     | Risk                                                                         | Context status                         |
+| ---------- | ---------------------------------------------------------------------------- | -------------------------------------- |
+| `products` | API unavailable/malformed; UI page empty; third-party selector/catalog churn | `ACTIVE` — API and listing UI verified |
 
-## Unknowns and decisions
+## Decisions and remaining unknowns
 
-| Item                                | Why it matters                           | Owner   | Status                      |
-| ----------------------------------- | ---------------------------------------- | ------- | --------------------------- |
-| Stable UI selector strategy         | Needed before UI/table specs             | Harness | Open — resolve in UI slice  |
-| Synthetic account lifecycle for E2E | Needed before any mutating E2E is active | Harness | Open — resolve in E2E slice |
+| Item                        | Status                                                         |
+| --------------------------- | -------------------------------------------------------------- |
+| Catalog count               | Resolved — assert non-empty, not exact count                   |
+| UI selector strategy        | Resolved — visible text plus centralized verified CSS fallback |
+| Public CI target            | Approved for read-only products checks                         |
+| Formal accountable owner    | Pending confirmation                                           |
+| Private/staging mirror      | Not provided                                                   |
+| Synthetic account lifecycle | Deferred; blocks future mutating auth E2E                      |
 
 ## Approval
 
-- [x] Sources are authoritative (published API list, verified live).
-- [x] Environment and mutation boundaries are approved (read-only smoke only for now).
-- [x] Authentication and test-data handling are approved (no auth in smoke scope).
-- [x] At least one module is ready for requirement derivation (`products`).
+- [x] Sources are authoritative for the active API/UI scope.
+- [x] Environment and mutation boundaries are approved.
+- [x] Authentication and test-data handling are safe for read-only smoke.
+- [x] Both active requirements have verified contracts and executable tests.
