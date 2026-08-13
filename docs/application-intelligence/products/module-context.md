@@ -1,6 +1,6 @@
 # Module Context
 
-Status: `DRAFT`
+Status: `ACTIVE`
 
 ## Identity and evidence
 
@@ -84,15 +84,15 @@ Verified on `2026-08-13` via unauthenticated HTTP GET of the HTML document:
 
 | Question | Owner | Blocking? | Resolution |
 | -------- | ----- | --------- | ---------- |
-| Approve draft `AE-PRODUCTS-001` → `active`? | Owner | Yes for BUILD | Leave `draft` until explicit promotion |
-| Assert “≥1 product card” vs exact catalog size/names? | Owner | Yes for assertion strength | Recommend ≥1 + heading for P0 smoke |
-| May DISCOVER write class/id constants for the grid? | Owner | Yes before durable BUILD | Pending |
+| Approve draft `AE-PRODUCTS-001` → `active`? | Owner | Yes for BUILD | **Resolved `2026-08-13`: promoted to `active`** |
+| Assert “≥1 product card” vs exact catalog size/names? | Owner | Yes for assertion strength | **Resolved `2026-08-13`: assert ≥1 card + heading (no hard count)** |
+| May DISCOVER write class/id constants for the grid? | Owner | Yes before durable BUILD | **Resolved `2026-08-13`: approved** |
 | Is “table” assertion required literally? | Owner | Yes if they insist on `<table>` | Verified: **no table**; grid/cards only — requirement uses listing grid |
 | Expand slice to search / view product / add to cart? | Owner | No for listing BUILD | Keep draft-only candidates above |
 
 ## Approval
 
-- [ ] Business behavior matches the authoritative source.
-- [ ] Routes, APIs, selectors, and expected outcomes are verified.
-- [ ] Data creation and cleanup are safe.
-- [ ] Unknowns that affect assertions or safety are resolved.
+- [x] Business behavior matches the authoritative source.
+- [x] Routes, APIs, selectors, and expected outcomes are verified.
+- [x] Data creation and cleanup are safe.
+- [x] Unknowns that affect assertions or safety are resolved.

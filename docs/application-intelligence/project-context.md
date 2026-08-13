@@ -1,6 +1,6 @@
 # Project Context
 
-Status: `DRAFT`
+Status: `ACTIVE`
 
 ## Ownership and sources
 
@@ -19,7 +19,7 @@ Status: `DRAFT`
 
 | Environment | Base URL | Data class | Allowed operations | Approval |
 | ----------- | -------- | ---------- | ------------------ | -------- |
-| Public practice (shared) | `https://www.automationexercise.com` (HTTP 200 verified `2026-08-13`) | Shared public demo data (not owned synthetic fixtures) | Read-only smoke/UI against public pages for the products listing slice | Owner must approve treating this shared public site as the smoke/e2e target |
+| Public practice (shared) | `https://www.automationexercise.com` (HTTP 200 verified `2026-08-13`) | Shared public demo data (not owned synthetic fixtures) | Read-only smoke/UI against public pages for the products listing slice | **Approved `2026-08-13`: shared public site is the smoke/e2e target for this slice** |
 | Development | `<unknown — no private AUT env provided>` | Synthetic | `<unknown>` | Owner |
 | QA | `<unknown — no private AUT env provided>` | Synthetic | `<unknown>` | Owner |
 | Production | Same public hostname as above if used as “prod-like” | Shared public demo — no harness-owned test data | Read-only smoke only | Owner |
@@ -28,7 +28,7 @@ Status: `DRAFT`
 
 - Verified public origin: `https://www.automationexercise.com` (trailing slash optional; HTML routes resolve under this host).
 - Owner authorized treating `BASE_URL` as a **non-secret** so smoke/UI and e2e can run in CI without a GitHub Actions secret for the URL.
-- Current CI (`.github/workflows/cypress.yml`) still reads `secrets.BASE_URL`. Changing that wiring is **out of GATHER ownership**; record as a follow-up for MAINTAIN / owner before CI execution of AUT tests.
+- **Resolved `2026-08-13`:** CI wiring updated in this branch to use a non-secret public `BASE_URL` (with `secrets.BASE_URL` retained only as an optional override) and a tracked `cypress.env.prod.json` baseUrl for the shared public target.
 - Appropriate non-secret homes per harness docs: tracked `cypress/environments/cypress.env.*.json` and/or a non-secret CI env var — not a credential store.
 - Auth secrets (`CYPRESS_USERNAME` / `CYPRESS_PASSWORD` / etc.) remain unnecessary for the public products listing slice.
 
@@ -69,10 +69,10 @@ Status: `DRAFT`
 
 ## Approval
 
-- [ ] Sources are authoritative.
-- [ ] Environment and mutation boundaries are approved.
-- [ ] Authentication and test-data handling are approved.
-- [ ] At least one module is ready for requirement derivation.
-- [ ] Draft requirement(s) may be promoted to `active` for BUILD.
-- [ ] `BASE_URL` non-secret CI/environment wiring is approved and implemented outside GATHER.
-- [ ] DISCOVER may capture `/products` selectors into `cypress/configs/**`.
+- [x] Sources are authoritative.
+- [x] Environment and mutation boundaries are approved.
+- [x] Authentication and test-data handling are approved.
+- [x] At least one module is ready for requirement derivation.
+- [x] Draft requirement(s) may be promoted to `active` for BUILD.
+- [x] `BASE_URL` non-secret CI/environment wiring is approved and implemented outside GATHER.
+- [x] DISCOVER may capture `/products` selectors into `cypress/configs/**`.
