@@ -1,10 +1,9 @@
 name: Cypress Tests
 
+# Automatic PR/push runs are temporarily disabled while the GitHub account is billing-locked.
+# Manual dispatch remains available and preserves the environment/scope controls below. Restore
+# pull_request and push triggers when billing is fixed.
 on:
-  pull_request:
-    branches: [main, develop]
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       environment:
