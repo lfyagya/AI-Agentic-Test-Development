@@ -72,7 +72,7 @@ NEVER  →  a spec with no requirement tag, or more than one                 exa
 | `no-credential-literal` | Trust boundary. A committed credential is a breach, not a style issue. | Hook + CI |
 | `smoke-read-only` | Smoke runs against shared and production-like environments. | Hook + CI |
 | `search-before-create` | A filename check that finds nothing is not a value check that finds nothing. Duplicate owners are the most common review failure. | QA gate |
-| `one-requirement-tag` | The title survives every reporter and the tag supports filtering; together they make coverage computable. | QA gate |
+| `one-requirement-tag` | The title survives every reporter and the tag supports filtering; together they make coverage computable. | Hook + CI |
 
 <!-- HARNESS:RULES:END -->
 

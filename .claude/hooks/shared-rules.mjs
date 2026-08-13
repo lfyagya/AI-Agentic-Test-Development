@@ -295,6 +295,88 @@ export function scanContent(filePath, content, allowlist, repoRoot) {
       ),
   );
 
+  // Rule 8: Exactly one requirement tag per test, plus one Type and one Priority tag, with the
+  // title requirement id matching the requirement tag. This is a structural, single-file check —
+  // whether the id is *active* and unique across the repository is graded by evidence:build and
+  // check:requirements, which can see cross-file and cross-branch state a write-time hook cannot.
+  if (TESTS_SPEC_RE.test(normalized)) {
+    const tagMessage = message(
+      "one-requirement-tag",
+      "Spec must carry exactly one known requirement id in its title and tags.",
+    );
+    // Requirement id shape, e.g. AE-PRODUCTS-001 or REQ-1: uppercase segments joined by hyphens.
+    const REQUIREMENT_ID = /^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+$/;
+    const TYPE_TAGS = new Set(["smoke", "regression"]);
+    const PRIORITY_TAGS = new Set(["P0", "P1", "P2"]);
+    // Capture each test: the title literal and the optional options object that may hold `tags`.
+    const testCallRe =
+      /\b(?:it|specify)(?:\.\w+)?\s*\(\s*(['"`])([\s\S]*?)\1\s*(?:,\s*(\{[\s\S]*?\}))?/g;
+    let testMatch;
+    while ((testMatch = testCallRe.exec(content)) !== null) {
+      const lineNumber = lineNumberForIndex(content, testMatch.index);
+      const title = String(testMatch[2] || "");
+      const optionsObject = testMatch[3] || "";
+      const titleIdMatch = title.match(/^\s*\[([^\]]+)\]/);
+      const titleId = titleIdMatch ? titleIdMatch[1].trim() : null;
+
+      const tagsArrayMatch = optionsObject.match(/tags\s*:\s*\[([^\]]*)\]/);
+      const tags = tagsArrayMatch
+        ? [...tagsArrayMatch[1].matchAll(/['"`]([^'"`]+)['"`]/g)].map((m) =>
+            m[1].trim(),
+          )
+        : [];
+      const bare = (tag) => tag.replace(/^@/, "");
+      const typeTags = tags.filter((tag) =>
+        TYPE_TAGS.has(bare(tag).toLowerCase()),
+      );
+      const priorityTags = tags.filter((tag) =>
+        PRIORITY_TAGS.has(bare(tag).toUpperCase()),
+      );
+      const requirementTags = tags.filter(
+        (tag) =>
+          !TYPE_TAGS.has(bare(tag).toLowerCase()) &&
+          !PRIORITY_TAGS.has(bare(tag).toUpperCase()) &&
+          REQUIREMENT_ID.test(bare(tag)),
+      );
+
+      const problems = [];
+      if (!titleId || !REQUIREMENT_ID.test(titleId)) {
+        problems.push("title must begin with a [REQUIREMENT-ID] prefix");
+      }
+      if (requirementTags.length !== 1) {
+        problems.push(
+          `expected exactly one requirement id tag, found ${requirementTags.length}`,
+        );
+      }
+      if (typeTags.length !== 1) {
+        problems.push(
+          `expected exactly one Type tag (@smoke or @regression), found ${typeTags.length}`,
+        );
+      }
+      if (priorityTags.length !== 1) {
+        problems.push(
+          `expected exactly one Priority tag (@P0/@P1/@P2), found ${priorityTags.length}`,
+        );
+      }
+      if (
+        titleId &&
+        requirementTags.length === 1 &&
+        bare(requirementTags[0]) !== titleId
+      ) {
+        problems.push(
+          `title id [${titleId}] does not match requirement tag ${requirementTags[0]}`,
+        );
+      }
+      if (problems.length > 0) {
+        violations.push({
+          filePath: normalized,
+          lineNumber,
+          message: `${tagMessage} (${problems.join("; ")})`,
+        });
+      }
+    }
+  }
+
   // Rule 7: Smoke tests must be read-only.
   if (SMOKE_SPEC_RE.test(normalized)) {
     scanForRegex(
