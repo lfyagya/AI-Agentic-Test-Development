@@ -1,6 +1,6 @@
 <!-- GENERATED FROM harness.config.json — DO NOT EDIT. Change harness.config.json, then run npm run harness:sync. npm run harness:check fails on drift. -->
 
-# AGENTS.md — cypress-automation-boilerplate
+# AGENTS.md — cypress-ai-agentic-test-development
 
 Codex reads this file before starting work. Architecture: **Config → Commands → Tests**. The full
 framework contract is `CLAUDE.md`; application behavior is
@@ -25,7 +25,7 @@ Codex has no write-time hook, so these rules are guidance. The enforcing gate is
 
 - `cypress-intake` (INTAKE) — Start a new project or module, or turn unknown application behavior into context and config constants
 - `cypress-generator` (BUILD) — Build a module from a requirement id — config → commands → spec
-- `cypress-bug-hunter` (DIAGNOSE) — Debugging a reproducible test failure locally
+- `cypress-debugger` (DIAGNOSE) — Debugging a reproducible test failure locally
 - `pre-merge-qa-gate` (EVALUATE) — Evaluate supplied diff and verification evidence — PASS / PASS_WITH_ACTIONS / BLOCK
 
 Read/search only by design: the gate cannot edit files or execute shell commands, so the builder never grades its own output.

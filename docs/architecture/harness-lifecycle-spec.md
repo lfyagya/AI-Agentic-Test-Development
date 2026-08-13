@@ -40,7 +40,7 @@ Generated Claude and Copilot files are projections. They are never edited direct
 | GUARD    | Hooks + CI             | Proposed change                  | Deterministic allow/block           | Security and architecture fail closed       |
 | EVALUATE | `pre-merge-qa-gate`    | Diff + supplied command evidence | Verdict + per-test grade            | Read/search only                            |
 | EXECUTE  | Cypress                | Accepted tests and environment   | HTML + JSON report                  | Production smoke is read-only               |
-| DIAGNOSE | `cypress-bug-hunter`   | Failure evidence                 | Root cause + bounded repair         | No weakened assertion or hidden failure     |
+| DIAGNOSE | `cypress-debugger`   | Failure evidence                 | Root cause + bounded repair         | No weakened assertion or hidden failure     |
 | MEASURE  | `scripts/evidence.mjs` | Reporter JSON + registries       | Summary, coverage, metrics          | Missing evidence is `null`, never zero      |
 
 SHIP (opening the PR) and harness maintenance are not lifecycle agents; the parent workflow performs
@@ -68,15 +68,19 @@ evidence/
 ```
 
 `run-summary.json` is the only runner-neutral execution input downstream. Native reporter shapes
-do not leak into metrics.
+do not leak into metrics. The recorded ledgers, `unavailable`-vs-`zero` rule, and the recording
+commands are documented once in [`../START-HERE.md`](../START-HERE.md) §7; this section states only
+the contract.
 
 The metrics contract is:
 
 - M1 accepted-test rate from first-submission gate evidence.
 - M2 first-pass CI rate from first-attempt PR evidence, excluding classified environment failures.
 - M3 new-test flake rate after five observations on unchanged code.
-- M4 person-minutes per accepted scenario from the optional effort log.
 - M5 active requirements with a passing mapped test divided by all active requirements.
+
+Metric ids are stable identifiers, not a sequence. `M4` (QA effort per accepted scenario) was a
+manual-entry metric nothing consumed and has been retired; its id is not reused.
 
 ## Empty-state invariant
 

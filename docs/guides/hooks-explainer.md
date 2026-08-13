@@ -1,170 +1,55 @@
-# Hooks Explainer — The 5W Guide
+# Hooks Explainer — reference
 
-> **This is a concept + how-to doc.** If your team is confused about what hooks are, why they exist, when they fire, and when they don't apply — read this first. It uses no assumed knowledge.
+The enforcement model (what blocks a violation, where, and why) lives in
+[`../START-HERE.md`](../START-HERE.md) §4. This page is the hook-specific reference: the scripts, the
+events they fire on, the rules they scan for, and how to add or exempt one. It does not restate the
+model.
 
----
+## The four hook scripts
 
-## What Is a Hook? (Plain English)
+All live under `.claude/hooks/` and are shared by every tool that supports write-time hooks.
 
-A **hook** is a piece of code that runs automatically at a specific moment in a workflow — without you asking for it.
-
-In this framework, hooks are Node.js scripts that supported AI tools run at key moments during an
-assisted session. They sit between the model's intent and the file system, silently watching and
-enforcing rules.
-
-Think of them as the framework's immune system: they catch bad patterns before they reach your codebase.
-
----
-
-## The 5W Breakdown
-
-### Who runs the hooks?
-
-**Claude Code, GitHub Copilot, and Cursor** — via each tool's PreToolUse / preToolUse (and related)
-hook APIs. Codex has no write-time hook API; it relies on `npm run verify`, pre-push, and CI.
-
-Hooks only fire during those AI tool sessions. If a human types code directly in a file and saves
-it, hooks do **not** run. Hooks are an AI guardrail, not a human linter. For human-side enforcement,
-use `npm run lint`, `npm run check:rules`, and the pre-merge checklist.
-
----
-
-### What do the hooks do?
-
-This framework has four shared hook scripts under `.claude/hooks/`. Each has a single job:
-
-| Hook file | When it fires | What it does |
+| Hook file | Fires on | Effect |
 | --- | --- | --- |
-| `prompt-duplication-guard.mjs` | On prompt submit (Claude) | Reminds the agent to search before creating a new config, command, or spec |
-| `pre-validate-cypress-rules.mjs` | Before Edit/Write (Claude, Copilot, Cursor) | Scans proposed content and **blocks** the write on violation (exit 2) |
-| `validate-cypress-rules.mjs` | After Edit/Write; also CI via `--all` / `--base-ref` | Safety-net scan; CI uses the same scanner on the tree |
-| `session-end-reminder.mjs` | On session stop (Claude) | If Cypress files changed, prints the pre-merge checklist |
+| `prompt-duplication-guard.mjs` | prompt submit | Reminds the agent to search before creating a new config, command, or spec |
+| `pre-validate-cypress-rules.mjs` | before Edit/Write | Scans proposed content and **blocks** the write on a violation (exit 2) |
+| `validate-cypress-rules.mjs` | after Edit/Write; also CI via `--all` / `--base-ref` | Safety-net scan; CI runs the same scanner on the tree |
+| `session-end-reminder.mjs` | session stop | If Cypress files changed, prints the pre-merge checklist |
 
-The pre-write hook **blocks**. The post-write hook **warns**. Together they create a two-layer safety net.
+The pre-write hook **blocks**; the post-write hook **warns**. The event-to-hook wiring is generated
+into each tool's settings by `npm run harness:sync` — never edit it by hand.
 
----
+## Who runs them
 
-### Why do hooks exist?
+Claude, Copilot, and Cursor run these scripts through their pre-tool hook APIs, so all three refuse a
+violating write before it reaches disk. Codex has no hook API. Hooks also do not fire for
+hand-written code. In every uncovered case the gate is the universal floor — `npm run verify`,
+pre-push, and CI — which runs the same scanner. See [`../START-HERE.md`](../START-HERE.md) §4 and
+[`../architecture/cross-tool-configuration.md`](../architecture/cross-tool-configuration.md) for the
+per-tool matrix.
 
-Because AI writes fast — and fast writing without guardrails produces the exact problems this framework was built to prevent.
+## What the scanner detects
 
-Without hooks, an agent could:
+Rules are defined once in `.claude/hooks/shared-rules.mjs` and apply to `.cy.*`, `.commands.*`, and
+other Cypress files. The authoritative rule list (with severities and rationale) is the generated
+block in `CLAUDE.md` / `README.md`; the scanner enforces the `block`-severity subset:
 
-- Write `cy.wait(3000)` instead of `cy.apiWait('@alias')` — flaky test
-- Hardcode `cy.get('.btn-primary')` instead of using a config constant — brittle selector
-- Create a second `payments.commands.js` when one already exists — duplication debt
-- Import from a `*.actions.js` file that no longer follows the architecture
+- hard waits — `cy.wait(<number>)`
+- hardcoded selectors in specs/commands
+- hardcoded routes in `cy.visit()`
+- `*.actions.js` / page-object imports
+- hardcoded credentials
+- write requests in a smoke spec (`smoke-read-only`)
+- requirement/Type/Priority/tier tag shape (`one-requirement-tag`)
 
-Hooks turn these from "things engineers must remember to check" into "things that are automatically caught before the code lands".
+## Adding a rule
 
-They also protect the codebase when **less experienced team members** use Claude — they do not need to know all the rules for the rules to be enforced.
-
----
-
-### Where do hooks live?
-
-```text
-.claude/
-├── settings.json                    ← Declares which hooks fire at which event
-└── hooks/
-    ├── shared-rules.mjs             ← The rule definitions shared by pre and post hooks
-    ├── cypress-hook-allowlist.json  ← Explicit exceptions to hook rules
-    ├── cypress-hook-allowlist-governance.md  ← Documents every exception and why
-    ├── prompt-duplication-guard.mjs
-    ├── pre-validate-cypress-rules.mjs
-    ├── validate-cypress-rules.mjs
-    └── session-end-reminder.mjs
-```
-
-The event-to-hook wiring is in `.claude/settings.json`:
-
-```json
-"hooks": {
-  "UserPromptSubmit": [ "prompt-duplication-guard.mjs" ],
-  "PreToolUse (Edit|Write)": [ "pre-validate-cypress-rules.mjs" ],
-  "PostToolUse (Edit|Write)": [ "validate-cypress-rules.mjs" ],
-  "Stop": [ "session-end-reminder.mjs" ]
-}
-```
-
----
-
-### When do hooks fire? (The event lifecycle)
-
-```
-You type a prompt
-        ↓
-[UserPromptSubmit] → prompt-duplication-guard.mjs runs
-        ↓
-Claude reasons and decides to write a file
-        ↓
-[PreToolUse: Edit|Write] → pre-validate-cypress-rules.mjs runs
-  → If violations found: WRITE IS BLOCKED. Claude must fix first.
-  → If clean: write proceeds.
-        ↓
-File is written to disk
-        ↓
-[PostToolUse: Edit|Write] → validate-cypress-rules.mjs runs
-  → If violations found: warning printed (not a block at this stage).
-        ↓
-Claude finishes the session
-        ↓
-[Stop] → session-end-reminder.mjs runs
-  → If any cypress/ files changed: pre-merge checklist is printed.
-```
-
----
-
-## What Rules Do the Hooks Enforce?
-
-Rules are defined in `shared-rules.mjs` and apply to all `.cy.js`, `.commands.js`, and `.js` files inside `cypress/`.
-
-| Rule                   | What is detected                                                      | Why                                                                          |
-| ---------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| No hard waits          | `cy.wait(3000)` — any numeric argument                                | Hard waits mask timing problems; they make tests pass locally and fail in CI |
-| No actions imports     | `from '...*.actions.js'`                                              | Action class architecture is forbidden in this framework                     |
-| No page-object imports | Imports from paths containing `page-obj`, `pageobject`, `page-object` | Same reason — command-first replaces page objects                            |
-| Hardcoded selectors    | CSS classes, IDs, tag selectors in `cy.get()`                         | Selectors must come from config constants                                    |
-| Hardcoded endpoints    | Raw `/api/...` strings in intercepts                                  | Endpoints must come from API config constants                                |
-
----
-
-## When Are Hooks NOT Useful?
-
-Hooks do not help — and should not be expected to help — in these situations:
-
-**1. Human-written code**
-Hooks only fire during Claude / Copilot / Cursor tool calls. If a developer writes `cy.wait(2000)`
-manually and commits it, no hook fires. Use `npm run check:rules` and CI for human-written code.
-
-**2. Non-Cypress files**
-The hook scanner targets Cypress test/command files only. Changes to `package.json`,
-`cypress.config.js`, docs, or other non-target paths are not scanned.
-
-**3. Deliberate exceptions**
-Some literal values are legitimate (e.g. `cy.get('body')` for global page state checks). These are
-listed in `cypress-hook-allowlist.json`. If you get a false positive, add the value to the allowlist
-and document the reason in `cypress-hook-allowlist-governance.md`. Do not modify the rule itself.
-
-**4. Codex**
-Codex has no hook API. Its write-time path is guidance (`AGENTS.md`) plus the universal floor
-(`npm run verify` / pre-push / CI).
-
-**5. Framework-internal files**
-`cypress/support/core/api/` (the API engine) contains intentional technical patterns that may look
-like violations. The `TARGET_FILE_RE` regex in `shared-rules.mjs` is designed to exclude them, but if
-you modify core files, verify the scanner does not flag legitimate patterns.
-
----
-
-## How to Add a New Rule
-
-1. Open `.claude/hooks/shared-rules.mjs`
-2. Add a call to `scanForRegex()` following the pattern of existing rules
-3. The rule automatically applies to **both** the pre-write block and the post-write warning — you do not need to edit both hook files
+1. Add a `scanForRegex(...)` call in `.claude/hooks/shared-rules.mjs` — it applies to both the
+   pre-write block and the post-write warning; you do not edit the hook files.
+2. Add the rule's policy entry to `harness/profiles/adapters/cypress.json`, then
+   `npm run harness:compose && npm run harness:sync` so its message and docs are generated.
 
 ```javascript
-// Example: add a rule blocking cy.contains() with hard-coded strings
 scanForRegex(
   violations,
   normalized,
@@ -174,32 +59,19 @@ scanForRegex(
 );
 ```
 
-4. If the rule produces false positives for valid patterns, add exceptions to `cypress-hook-allowlist.json` and document them in `cypress-hook-allowlist-governance.md`.
+## Exempting a legitimate value
 
----
+Some literals are legitimate (e.g. `cy.get('body')`). Add them to
+`.claude/hooks/cypress-hook-allowlist.json` and record the reason in
+`cypress-hook-allowlist-governance.md`. Never weaken the rule itself. Framework-internal API-engine
+files under `cypress/support/core/api/` are excluded by `TARGET_FILE_RE`.
 
-## How to Run Hooks in CI (Without Claude)
-
-The post-write validator doubles as a CI linter:
+## Running the scanner without an AI tool
 
 ```bash
 node .claude/hooks/validate-cypress-rules.mjs --base-ref main
 ```
 
-This diffs `HEAD` against `origin/main`, reads every changed Cypress file, and exits non-zero if violations are found. Wire it into your GitHub Actions workflow to catch violations before they merge.
-
-See [docs/guides/ci-cd-guide.md](ci-cd-guide.md) for full pipeline setup.
-
----
-
-## Quick Reference
-
-| Question                                                | Answer                                                                    |
-| ------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Do hooks run when I write code manually?                | No — only during Claude Code sessions                                     |
-| Do hooks run in Copilot (VS Code)?                      | No — Copilot uses instruction files instead                               |
-| What happens when a hook blocks a write?                | Claude sees the error and must fix the violation before the file is saved |
-| Can I bypass a hook permanently for a legitimate value? | Yes — add it to `cypress-hook-allowlist.json` with a documented reason    |
-| Can I bypass a hook temporarily in an emergency?        | Yes — but document it in the allowlist immediately after                  |
-| Where do I add a new rule?                              | `shared-rules.mjs` only — one place, applies everywhere                   |
-| How do I run hook validation without Claude?            | `node .claude/hooks/validate-cypress-rules.mjs --base-ref main`           |
+Diffs `HEAD` against `origin/main`, reads every changed Cypress file, and exits non-zero on a
+violation. `npm run check:rules` runs it across the whole tree. CI setup:
+[`ci-cd-guide.md`](ci-cd-guide.md).

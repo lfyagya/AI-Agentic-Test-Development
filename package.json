@@ -1,18 +1,19 @@
 {
-  "name": "cypress-automation-boilerplate",
+  "name": "cypress-ai-agentic-test-development",
   "version": "2.0.0",
-  "description": "Reference Cypress automation harness — Config → Custom Commands → Tests, with optional AI adapters.",
+  "description": "Reference Cypress AI test harness — Config → Custom Commands → Tests, governed by an agentic lifecycle.",
   "keywords": [
     "cypress",
     "automation",
     "testing",
     "e2e",
     "command-first",
-    "boilerplate"
+    "ai-agents",
+    "harness"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/lfyagya/cypress-automation-boilerplate.git"
+    "url": "https://github.com/lfyagya/cypress-ai-agentic-test-development.git"
   },
   "scripts": {
     "cy:open": "cypress open",

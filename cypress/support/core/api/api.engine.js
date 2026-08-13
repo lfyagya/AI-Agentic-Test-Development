@@ -98,6 +98,10 @@ export function makeRequest(apiEntry, body = null, options = {}) {
     failOnStatusCode: options.failOnStatusCode ?? false,
   };
   if (body) req.body = body;
+  // `form: true` sends the body url-encoded; some endpoints reject a JSON body. `headers` lets a
+  // caller set content negotiation explicitly. Both are opt-in and change nothing for existing callers.
+  if (options.form) req.form = true;
+  if (options.headers) req.headers = options.headers;
   return cy.request(req);
 }
 

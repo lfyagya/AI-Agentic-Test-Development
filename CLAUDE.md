@@ -29,7 +29,7 @@ INTAKE → SPECIFY → BUILD → GUARD → EVALUATE → EXECUTE → DIAGNOSE →
 - The owner approves requirements and promotes them to `active`.
 - BUILD (`cypress-generator`) accepts exactly one active requirement id.
 - EVALUATE (`pre-merge-qa-gate`) is read-only and supplies the merge verdict.
-- DIAGNOSE (`cypress-bug-hunter`) runs only after a reproducible failure.
+- DIAGNOSE (`cypress-debugger`) runs only after a reproducible failure.
 - Repairs are bounded by `loops.gateRepairLimit`.
 
 Four agents, invoked by condition — not a fixed pipeline. A routine change to a documented module

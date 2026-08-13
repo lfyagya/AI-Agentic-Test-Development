@@ -5,8 +5,8 @@
   "owner": "cypress-harness-maintainers",
   "adapter": "cypress",
   "language": "javascript",
-  "projectName": "cypress-automation-boilerplate",
-  "repo": "cypress-automation-boilerplate",
+  "projectName": "cypress-ai-agentic-test-development",
+  "repo": "cypress-ai-agentic-test-development",
   "$adapters": "This reference instantiation deliberately enables all four tools to demonstrate every projection. A real project should enable only the tools its team uses — the _template default is claude+copilot — because each disabled adapter's generated files are removed on the next sync.",
   "adapters": {
     "claude": {

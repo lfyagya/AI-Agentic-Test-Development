@@ -1,6 +1,6 @@
 <!-- GENERATED FROM harness.config.json — DO NOT EDIT. Change harness.config.json, then run npm run harness:sync. npm run harness:check fails on drift. -->
 
-# GitHub Copilot Instructions — cypress-automation-boilerplate
+# GitHub Copilot Instructions — cypress-ai-agentic-test-development
 
 Architecture: **Config → Commands → Tests**. Read `CLAUDE.md` for the full framework contract and
 `docs/application-intelligence/<module>/module-context.md` for what the application does.
@@ -24,7 +24,7 @@ changes as the final backstop; shell commands are not represented as Edit or Wri
 
 - `cypress-intake` (INTAKE) — Start a new project or module, or turn unknown application behavior into context and config constants
 - `cypress-generator` (BUILD) — Build a module from a requirement id — config → commands → spec
-- `cypress-bug-hunter` (DIAGNOSE) — Debugging a reproducible test failure locally
+- `cypress-debugger` (DIAGNOSE) — Debugging a reproducible test failure locally
 - `pre-merge-qa-gate` (EVALUATE) — Evaluate supplied diff and verification evidence — PASS / PASS_WITH_ACTIONS / BLOCK
 
 Read/search only by design: the gate cannot edit files or execute shell commands, so the builder never grades its own output.

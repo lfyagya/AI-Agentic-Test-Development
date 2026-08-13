@@ -93,14 +93,14 @@ CLONE → npm ci → configure profile → COMPOSE → refresh skills canon → 
 ```
 
 `verify` on an empty new profile expects bootstrap. This repository's reference clone already has
-two products smoke specs — verify runs them.
+products specs (smoke + one e2e) — verify runs them.
 
 | Phase | Agent | Skills used |
 |---|---|---|
 | INTAKE | `cypress-intake` | `cypress-docs` |
 | BUILD | `cypress-generator` | `cypress-author`, `cypress-docs` |
 | EVALUATE | `pre-merge-qa-gate` (read-only) | `cypress-explain` |
-| DIAGNOSE | `cypress-bug-hunter` | `cypress-author`, `cypress-explain`, `cypress-docs` |
+| DIAGNOSE | `cypress-debugger` | `cypress-author`, `cypress-explain`, `cypress-docs` |
 | SHIP | parent workflow (no agent) | — |
 
 ---
@@ -202,19 +202,8 @@ AGENTS.md
 
 ## 9. Correct configuration sequence
 
-1. Configure project profile
-2. Compose `harness.config.json`
-3. Install/pin official Cypress skills into `harness/skills` (`npm run harness:skills`)
-4. Sync enabled tool projections
-5. Remove stale projections for disabled tools (automatic on sync)
-6. Check projection drift
-7. Verify (bootstrap on empty profile; this reference clone runs products smoke)
-8. Gather verified application context
-9. Approve active requirements
-10. Build one requirement
-11. Guard and independently evaluate
-12. Execute
-13. Diagnose failures through bounded repair
-14. Measure evidence and traceability
-15. Create PR
-16. Merge, then process the next requirement  
+The setup order (configure profile → compose → skills → sync → drift check → verify) and the full
+per-requirement lifecycle (GATHER/INTAKE → SPECIFY → BUILD → GUARD → EVALUATE → EXECUTE → DIAGNOSE →
+MEASURE → SHIP) are documented once in [`../START-HERE.md`](../START-HERE.md) §2.4 and §6. This page
+is not the second copy — follow START-HERE for the steps and return here for the per-tool projection
+detail above.
