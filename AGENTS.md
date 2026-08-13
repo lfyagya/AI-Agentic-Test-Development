@@ -23,13 +23,10 @@ Codex has no write-time hook, so these rules are guidance. The enforcing gate is
 
 ## Agent roster
 
-- `project-bootstrapper` (GATHER) — Start a new project or module from no existing automation context
-- `cypress-discovery` (DISCOVER) — Observe an unknown module and turn what you see into config constants
+- `cypress-intake` (INTAKE) — Start a new project or module, or turn unknown application behavior into context and config constants
 - `cypress-generator` (BUILD) — Build a module from a requirement id — config → commands → spec
-- `cypress-bug-hunter` (DIAGNOSE) — Debugging a failing test locally
+- `cypress-bug-hunter` (DIAGNOSE) — Debugging a reproducible test failure locally
 - `pre-merge-qa-gate` (EVALUATE) — Evaluate supplied diff and verification evidence — PASS / PASS_WITH_ACTIONS / BLOCK
-- `pr-creator` (SHIP) — Opening a pull request with a generated description
-- `workflow-maintainer` (MAINTAIN) — Simplify workflow scripts, agents, or docs
 
 Read/search only by design: the gate cannot edit files or execute shell commands, so the builder never grades its own output.
 

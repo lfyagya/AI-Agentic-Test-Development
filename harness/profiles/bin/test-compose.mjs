@@ -25,15 +25,7 @@ const REQUIRED = [
   "hooks",
   "permissions",
 ];
-const ROLES = [
-  "GATHER",
-  "DISCOVER",
-  "BUILD",
-  "DIAGNOSE",
-  "EVALUATE",
-  "SHIP",
-  "MAINTAIN",
-];
+const ROLES = ["INTAKE", "BUILD", "DIAGNOSE", "EVALUATE"];
 
 const profiles = fs
   .readdirSync(PROFILES)
@@ -55,7 +47,7 @@ for (const file of profiles) {
     assert.ok(config[field] !== undefined, `${file}: missing ${field}`);
   }
   assert.ok(config.rules.length > 0, `${file}: no rules`);
-  assert.equal(config.agents.length, 7, `${file}: expected 7 roles`);
+  assert.equal(config.agents.length, 4, `${file}: expected 4 roles`);
   const roles = config.agents.map((a) => a.role);
   for (const role of ROLES)
     assert.ok(roles.includes(role), `${file}: missing role ${role}`);
