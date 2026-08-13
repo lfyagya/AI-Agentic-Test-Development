@@ -1,0 +1,4 @@
+{
+  "name": "Cypress Automation Boilerplate",
+  "install": "npm ci"
+}
