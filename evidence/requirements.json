@@ -1,4 +1,25 @@
 {
   "version": 1,
-  "requirements": []
+  "requirements": [
+    {
+      "id": "AE-PRODUCTS-001",
+      "module": "products",
+      "title": "anonymous visitor sees the All Products listing grid",
+      "acceptanceCriteria": [
+        "Opening the products route shows the All Products heading",
+        "The products listing grid shows at least one product card with a visible product name"
+      ],
+      "preconditions": [
+        "Public Automation Exercise site is reachable at the configured non-secret base URL",
+        "Visitor is unauthenticated; listing requires no login"
+      ],
+      "expectedOutcome": "The All Products page renders a non-empty product listing grid (card grid, not an HTML table)",
+      "type": "SMOKE",
+      "priority": "P0",
+      "tier": "smoke",
+      "path": "positive",
+      "status": "draft",
+      "source": "docs/application-intelligence/products/module-context.md#listing-grid"
+    }
+  ]
 }
