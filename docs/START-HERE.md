@@ -85,7 +85,7 @@ This is the acceptance test for a correct installation.
 npm run verify
 ```
 
-That chain is `harness:check` → `harness:test` → `harness:format:check` → `check:rules` →
+That chain is `harness:check` → `harness:ready` → `harness:test` → `harness:format:check` → `check:rules` →
 `check:requirements` → `typecheck` → `npm test` (with `lint` via `pretest`) → `evidence:build`.
 Run them individually to isolate a failure.
 
@@ -114,7 +114,7 @@ cp harness/profiles/projects/_template.json harness/profiles/projects/<key>.json
 ```
 
 ```bash
-npm run harness:compose && npm run harness:sync && npm run harness:check
+npm run harness:compose && npm run harness:sync && npm run harness:check && npm run harness:lock
 ```
 
 You now have the full four-role roster, every rule enforced at write time, enabled AI adapters
@@ -196,7 +196,7 @@ hook and enforcement matrix is in
 After any policy change:
 
 ```bash
-npm run harness:compose && npm run harness:sync && npm run harness:check
+npm run harness:compose && npm run harness:sync && npm run harness:check && npm run harness:lock
 ```
 
 Two independent drift checks, both inside `npm run verify`:

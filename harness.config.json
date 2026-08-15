@@ -178,6 +178,7 @@
   ],
   "hooks": {
     "prompt": [
+      "harness-config-gate.mjs",
       "prompt-duplication-guard.mjs"
     ],
     "preWrite": [

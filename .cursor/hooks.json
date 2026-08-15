@@ -4,6 +4,9 @@
   "hooks": {
     "beforeSubmitPrompt": [
       {
+        "command": "node .claude/hooks/harness-config-gate.mjs"
+      },
+      {
         "command": "node .claude/hooks/prompt-duplication-guard.mjs"
       }
     ],

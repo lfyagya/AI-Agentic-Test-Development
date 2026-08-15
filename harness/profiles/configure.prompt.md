@@ -32,12 +32,14 @@ Task:
 - After sync, official Cypress skills live under harness/skills/cypress/* and are projected to .claude/skills and .agents/skills. Refresh with `npm run harness:skills` when upstream changes; do not invent skill content by hand.
 - Optional at this step (not required to start): API contracts, CI details — record as unknown for cypress-intake / application-intelligence later.
 - Never put passwords, tokens, or PII in the profile.
+- Leave `locked` false. A lead runs `npm run harness:lock` after compose/sync/check — work stays blocked until then.
 - Do not create specs, commands, selectors, or evidence/requirements.json entries in this step.
 
 Then run (or tell me to run):
   node harness/profiles/bin/compose-harness-config.mjs --profile harness/profiles/projects/<key>.json --out harness.config.json
   npm run harness:sync
   npm run harness:check
+  npm run harness:lock
 
 Output when done:
 1. Path of the profile written

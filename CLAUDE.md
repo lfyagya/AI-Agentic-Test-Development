@@ -98,7 +98,7 @@ reasons.
 npm run verify
 ```
 
-Runs `harness:check` → `harness:test` → `harness:format:check` → `check:rules` → `npm test` (with
+Runs `harness:check` → `harness:ready` → `harness:test` → `harness:format:check` → `check:rules` → `npm test` (with
 `lint` via `pretest`) → `evidence:build`. Run them individually to isolate a failure.
 
 Do not claim execution, coverage, or a metric without the corresponding command or source

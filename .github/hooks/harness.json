@@ -4,6 +4,15 @@
     "userPromptSubmitted": [
       {
         "type": "command",
+        "command": "node .claude/hooks/harness-config-gate.mjs",
+        "cwd": ".",
+        "timeoutSec": 30,
+        "env": {
+          "HARNESS_GENERATED_FROM": "harness.config.json"
+        }
+      },
+      {
+        "type": "command",
         "command": "node .claude/hooks/prompt-duplication-guard.mjs",
         "cwd": ".",
         "timeoutSec": 30,

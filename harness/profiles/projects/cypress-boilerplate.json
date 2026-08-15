@@ -21,5 +21,6 @@
     "codex": {
       "enabled": true
     }
-  }
+  },
+  "locked": true
 }

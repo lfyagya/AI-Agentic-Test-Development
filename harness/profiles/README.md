@@ -43,6 +43,7 @@ npm run harness:sync
 
 ```bash
 npm run harness:check
+npm run harness:lock    # lead sign-off — work is blocked until the profile is locked
 ```
 
 That yields the full four-role roster, every rule enforced at write time, and enabled AI adapters

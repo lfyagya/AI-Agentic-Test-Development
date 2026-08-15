@@ -121,7 +121,11 @@ assert.ok(
 assert.ok(hooks.hooks.userPromptSubmitted?.length >= 1, "Copilot prompt hook missing");
 assert.ok(hooks.hooks.agentStop?.length >= 1, "Copilot stop hook missing");
 assert.ok(
-  hooks.hooks.userPromptSubmitted.every((hook) => hook.command.includes("prompt-duplication-guard")),
+  hooks.hooks.userPromptSubmitted.some((hook) => hook.command.includes("harness-config-gate")),
+  "Copilot prompt hook must run the profile gate first",
+);
+assert.ok(
+  hooks.hooks.userPromptSubmitted.some((hook) => hook.command.includes("prompt-duplication-guard")),
 );
 assert.ok(hooks.hooks.agentStop.every((hook) => hook.command.includes("session-end-reminder")));
 
